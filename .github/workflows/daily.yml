@@ -1,0 +1,45 @@
+name: Daily Fallen Angel Report
+
+on:
+  schedule:
+    # 매일 22:00 UTC = 한국시간 오전 07:00 KST (UTC+9)
+    - cron: '0 22 * * *'
+  workflow_dispatch:   # 수동 실행 버튼 (테스트용)
+
+permissions:
+  contents: write      # docs/ 커밋·푸시 권한
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 전일 비교용 data/ 히스토리 필요
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        run: python src/pipeline.py
+        env:
+          PYTHONIOENCODING: utf-8
+          TZ: Asia/Seoul
+
+      - name: Commit & push report
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html data/
+          # 변경 사항이 있을 때만 커밋
+          git diff --cached --quiet || git commit -m "📊 Daily report $(date +'%Y-%m-%d') KST"
+          git push
