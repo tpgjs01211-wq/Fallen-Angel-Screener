@@ -153,6 +153,51 @@ def screen_drops(quality_df):
 #  PHASE 2 : DEEP DATA FETCH
 # ════════════════════════════════════════════════════════
 
+def fetch_macro():
+    """주요 거시경제 지표 수집"""
+    symbols = {
+        "S&P 500":    "^GSPC",
+        "NASDAQ":     "^IXIC",
+        "VIX":        "^VIX",
+        "10Y 국채금리": "^TNX",
+        "달러인덱스":   "DX-Y.NYB",
+        "금":          "GC=F",
+        "WTI 원유":    "CL=F",
+    }
+    result = {}
+    try:
+        raw = yf.download(list(symbols.values()), period="5d", progress=False)
+        close = raw["Close"] if isinstance(raw.columns, pd.MultiIndex) else raw[["Close"]]
+        for name, sym in symbols.items():
+            try:
+                if sym not in close.columns:
+                    continue
+                series = close[sym].dropna()
+                if len(series) < 1:
+                    continue
+                cur  = float(series.iloc[-1])
+                prev = float(series.iloc[-2]) if len(series) >= 2 else cur
+                chg  = (cur - prev) / prev if prev else 0
+                result[name] = {"symbol": sym, "price": cur, "change": chg}
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return result
+
+
+def fetch_market_news():
+    """SPY / QQQ 뉴스로 시장 전반 헤드라인 수집"""
+    try:
+        news = yf.Ticker("SPY").news or []
+        return [{"title": n.get("content", {}).get("title", ""),
+                 "date":  n.get("content", {}).get("pubDate", "")[:10],
+                 "source":n.get("content", {}).get("provider", {}).get("displayName", "")}
+                for n in news[:6] if n.get("content", {}).get("title")]
+    except Exception:
+        return []
+
+
 def fetch_news(ticker):
     try:
         news = yf.Ticker(ticker).news or []
@@ -389,7 +434,7 @@ def build_comparison(today_results, prev_df, prev_date):
     rows = []
     for tk in sorted(today_t | prev_t):
         t, p = tm.get(tk), pm.get(tk)
-        if t and p:
+        if t is not None and p is not None:
             tg, pg = t["verdict"]["grade"], str(p.get("grade",""))
             gd = go.get(tg,0) - go.get(pg,0)
             rows.append({"ticker":tk,"name":t["name"],"sector":t["sector"],
@@ -402,7 +447,7 @@ def build_comparison(today_results, prev_df, prev_date):
                 "today_nature":t["assessment"]["nature"],
                 "today_drop":t["drop"],"today_bounce":t["bounce"],
                 "is_new":False,"is_exit":False})
-        elif t:
+        elif t is not None:
             rows.append({"ticker":tk,"name":t["name"],"sector":t["sector"],
                 "today_grade":t["verdict"]["grade"],"prev_grade":"-","grade_change":"NEW",
                 "today_score":t["verdict"]["score"],"prev_score":0,"score_delta":t["verdict"]["score"],
@@ -582,7 +627,66 @@ def card(r):
     </div>"""
 
 
-def generate_html(results, comparison, date_str):
+def vix_label(v):
+    if v < 15:   return ("극도의 탐욕", "#0F6E56")
+    if v < 20:   return ("탐욕",       "#3a8c3f")
+    if v < 25:   return ("중립",       "#888")
+    if v < 30:   return ("공포",       "#c47900")
+    return              ("극도의 공포", "#A32D2D")
+
+
+def macro_section(macro, market_news):
+    if not macro:
+        return ""
+
+    def tile(name, data):
+        p    = data["price"]
+        chg  = data["change"]
+        sign = "+" if chg >= 0 else ""
+        col  = "#0F6E56" if chg >= 0 else "#A32D2D"
+        arrow = "▲" if chg >= 0 else "▼"
+
+        # VIX 전용: 공포 레이블 추가
+        extra = ""
+        if name == "VIX":
+            lbl, lc = vix_label(p)
+            extra = f'<div class="macro-fear" style="color:{lc}">{lbl}</div>'
+
+        # 단위 포맷
+        if name in ("10Y 국채금리",):
+            price_fmt = f"{p:.2f}%"
+        elif name == "달러인덱스":
+            price_fmt = f"{p:.1f}"
+        else:
+            price_fmt = f"${p:,.2f}" if p >= 10 else f"{p:.2f}"
+
+        return f"""<div class="macro-tile">
+            <div class="macro-name">{name}</div>
+            <div class="macro-price">{price_fmt}</div>
+            <div class="macro-chg" style="color:{col}">{arrow} {sign}{chg:.2%}</div>
+            {extra}
+        </div>"""
+
+    tiles_h = "".join(tile(n, d) for n, d in macro.items())
+
+    news_h = ""
+    if market_news:
+        items = "".join(
+            f'<div class="mkt-news-item"><span class="mkt-news-title">{n["title"][:90]}{"…" if len(n["title"])>90 else ""}</span>'
+            f'<span class="muted" style="font-size:11px;white-space:nowrap"> · {n["source"]} {n["date"]}</span></div>'
+            for n in market_news[:5]
+        )
+        news_h = f'<div class="mkt-news-wrap"><div class="mkt-news-header">📰 시장 주요 뉴스</div>{items}</div>'
+
+    return f"""
+<div class="macro-section">
+  <div class="macro-header">📊 오늘의 시장 현황</div>
+  <div class="macro-grid">{tiles_h}</div>
+  {news_h}
+</div>"""
+
+
+def generate_html(results, comparison, date_str, macro=None, market_news=None):
     actionable  = [r for r in results if r["verdict"]["grade"] in ("STRONG BUY","BUY")]
     total_alloc = sum(r["trade_plan"]["amount"] for r in actionable)
     total_risk  = sum(r["trade_plan"].get("risk_amount",0) for r in actionable)
@@ -662,10 +766,28 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
 /* Header bar */
 .header-bar{{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 20px;flex-wrap:wrap;gap:8px}}
 .disclaimer{{font-size:12px;color:#888;margin:28px 0 0;padding:14px;background:var(--bg);border-radius:var(--radius)}}
+/* Macro section */
+.macro-section{{background:#f8f9fa;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 0 24px}}
+.macro-header{{font-size:13px;font-weight:600;color:#555;margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px}}
+.macro-grid{{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:0 0 14px}}
+.macro-tile{{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}}
+.macro-name{{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin:0 0 4px}}
+.macro-price{{font-size:15px;font-weight:600;font-family:monospace}}
+.macro-chg{{font-size:12px;font-weight:500;margin:2px 0}}
+.macro-fear{{font-size:10px;font-weight:600;margin:3px 0}}
+.mkt-news-wrap{{border-top:1px solid var(--border);padding-top:12px}}
+.mkt-news-header{{font-size:12px;font-weight:600;color:#555;margin:0 0 8px;text-transform:uppercase;letter-spacing:.4px}}
+.mkt-news-item{{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-bottom:.5px solid #f0f0f0;font-size:13px}}
+.mkt-news-title{{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:700px){{
+  .macro-grid{{grid-template-columns:repeat(3,1fr)}}
+  .mkt-news-item{{flex-direction:column;gap:2px}}
+}}
 @media(max-width:600px){{
   .stat-grid.four{{grid-template-columns:repeat(2,1fr)}}
   .mini-grid.four{{grid-template-columns:repeat(2,1fr)}}
   body{{padding:12px 10px}}
+  .macro-grid{{grid-template-columns:repeat(2,1fr)}}
 }}
 </style>
 </head>
@@ -684,12 +806,7 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
   </div>
 </div>
 
-<div class="stat-grid four">
-    <div class="stat"><div class="sl">분석 종목</div><div class="sv">{len(results)}</div></div>
-    <div class="stat"><div class="sl">매수 가능</div><div class="sv green">{len(actionable)}</div></div>
-    <div class="stat"><div class="sl">배분 금액</div><div class="sv">${total_alloc:,.0f}</div></div>
-    <div class="stat"><div class="sl">총 리스크</div><div class="sv red">${total_risk:,.0f}</div></div>
-</div>
+{macro_section(macro, market_news)}
 
 <h2>전일 대비 비교</h2>
 {comparison_section(comparison)}
@@ -765,7 +882,10 @@ def main():
 
     # Phase 6: save
     print("  [5/5] Generating report …")
-    html = generate_html(results, comparison, date_str)
+    print("    Fetching macro indicators …")
+    macro       = fetch_macro()
+    market_news = fetch_market_news()
+    html = generate_html(results, comparison, date_str, macro, market_news)
     html_path = os.path.join(DOCS_DIR, "index.html")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
