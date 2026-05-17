@@ -3,7 +3,7 @@ Fallen Angel Daily Pipeline  ·  GitHub Actions 배포용
 매일 오전 7시 KST (22:00 UTC) GitHub Actions 에서 실행
 결과: docs/index.html  +  data/analysis_YYYYMMDD.csv
 """
-import os, glob
+import os, glob, json
 from datetime import datetime, timedelta
 from io import StringIO
 
@@ -806,6 +806,162 @@ def macro_section(macro, market_news):
 </div>"""
 
 
+def heatmap_section(results):
+    """포트폴리오 히트맵 — SVG 트리맵, 파스텔 톤"""
+    actionable = [r for r in results if r["trade_plan"]["shares"] > 0]
+    if not actionable:
+        return ""
+
+    PASTEL = {
+        "STRONG BUY": {"bg":"#c3f0d8","border":"#6fcf97","text":"#1b4332","label_bg":"#6fcf97"},
+        "BUY":        {"bg":"#c2e4f5","border":"#56b4d3","text":"#0d2f45","label_bg":"#56b4d3"},
+        "WATCH":      {"bg":"#fde8c8","border":"#f5a623","text":"#6b3a00","label_bg":"#f5a623"},
+        "PASS":       {"bg":"#e8e9eb","border":"#b0b3b8","text":"#444",   "label_bg":"#b0b3b8"},
+    }
+
+    tile_data = []
+    for r in actionable:
+        grade  = r["verdict"]["grade"]
+        colors = PASTEL.get(grade, PASTEL["PASS"])
+        tile_data.append({
+            "ticker":  r["ticker"],
+            "grade":   grade,
+            "score":   r["verdict"]["score"],
+            "amount":  r["trade_plan"]["amount"],
+            "pct":     round(r["trade_plan"]["pct_portfolio"] * 100, 1),
+            "drop":    round(r["drop"] * 100, 1),
+            "bounce":  round(r["bounce"] * 100, 1),
+            **colors,
+        })
+
+    data_json = json.dumps(tile_data, ensure_ascii=False)
+
+    return f"""
+<div style="margin:0 0 6px">
+  <div style="font-size:16px;font-weight:600;margin:28px 0 12px;padding:0 0 8px;border-bottom:2px solid #e5e7eb">
+    📦 포트폴리오 히트맵
+    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px">크기 = 투자금액 비중</span>
+  </div>
+  <svg id="heatmap-svg" style="width:100%;display:block;border-radius:12px" height="300"></svg>
+</div>
+<script>
+(function(){{
+  const D = {data_json};
+
+  function layout(items, x, y, w, h) {{
+    if (!items.length) return [];
+    if (items.length === 1) return [{{...items[0], x, y, w, h}}];
+    const tot = items.reduce((s,d)=>s+d.amount,0);
+    let best = 1, bestAR = Infinity, run = 0;
+    for (let i=1; i<items.length; i++) {{
+      run += items[i-1].amount;
+      const a=run/tot, b=1-a;
+      const ar = w>=h
+        ? Math.max((w*a)/h,h/(w*a)) + Math.max((w*b)/h,h/(w*b))
+        : Math.max(w/(h*a),(h*a)/w) + Math.max(w/(h*b),(h*b)/w);
+      if(ar<bestAR){{bestAR=ar;best=i;}}
+    }}
+    const aI=items.slice(0,best), bI=items.slice(best);
+    const aR=aI.reduce((s,d)=>s+d.amount,0)/tot;
+    return w>=h
+      ? [...layout(aI,x,y,w*aR,h),   ...layout(bI,x+w*aR,y,w*(1-aR),h)]
+      : [...layout(aI,x,y,w,h*aR),   ...layout(bI,x,y+h*aR,w,h*(1-aR))];
+  }}
+
+  function render(){{
+    const svg = document.getElementById('heatmap-svg');
+    if(!svg) return;
+    const W = svg.parentElement.clientWidth || 960;
+    const H = 300;
+    svg.setAttribute('viewBox',`0 0 ${{W}} ${{H}}`);
+    const sorted = [...D].sort((a,b)=>b.amount-a.amount);
+    const rects  = layout(sorted, 0, 0, W, H);
+    const ns='http://www.w3.org/2000/svg';
+    svg.innerHTML='';
+    const G=4;
+
+    // Legend
+    const grades=[['STRONG BUY','#c3f0d8','#6fcf97','#1b4332'],['BUY','#c2e4f5','#56b4d3','#0d2f45'],['WATCH','#fde8c8','#f5a623','#6b3a00']];
+    let lx=W-8;
+    for(const [lb,bg,bd,tc] of [...grades].reverse()){{
+      const lw=lb.length*6.5+16;
+      lx-=lw+6;
+      const lg=document.createElementNS(ns,'g');
+      const lr=document.createElementNS(ns,'rect');
+      lr.setAttribute('x',lx); lr.setAttribute('y',6);
+      lr.setAttribute('width',lw); lr.setAttribute('height',18);
+      lr.setAttribute('rx','4'); lr.setAttribute('fill',bg);
+      lr.setAttribute('stroke',bd); lr.setAttribute('stroke-width','1');
+      lg.appendChild(lr);
+      const lt=document.createElementNS(ns,'text');
+      lt.setAttribute('x',lx+lw/2); lt.setAttribute('y',19);
+      lt.setAttribute('text-anchor','middle');
+      lt.setAttribute('font-size','10'); lt.setAttribute('font-weight','600');
+      lt.setAttribute('font-family','sans-serif'); lt.setAttribute('fill',tc);
+      lt.textContent=lb; lg.appendChild(lt);
+      svg.appendChild(lg);
+    }}
+
+    for(const r of rects){{
+      const G2=G/2;
+      const rx=r.x+G2, ry=r.y+G2, rw=Math.max(0,r.w-G), rh=Math.max(0,r.h-G);
+      const g=document.createElementNS(ns,'g');
+
+      const rect=document.createElementNS(ns,'rect');
+      rect.setAttribute('x',rx); rect.setAttribute('y',ry);
+      rect.setAttribute('width',rw); rect.setAttribute('height',rh);
+      rect.setAttribute('rx','8'); rect.setAttribute('fill',r.bg);
+      rect.setAttribute('stroke',r.border); rect.setAttribute('stroke-width','1.5');
+      g.appendChild(rect);
+
+      // Clip path so text doesn't overflow tile
+      const cid='c'+r.ticker;
+      const clip=document.createElementNS(ns,'clipPath');
+      clip.setAttribute('id',cid);
+      const cr=document.createElementNS(ns,'rect');
+      cr.setAttribute('x',rx+4); cr.setAttribute('y',ry+4);
+      cr.setAttribute('width',Math.max(0,rw-8)); cr.setAttribute('height',Math.max(0,rh-8));
+      clip.appendChild(cr); svg.appendChild(clip);
+
+      const cx=rx+rw/2, cy=ry+rh/2;
+      const minD=Math.min(rw,rh);
+
+      function txt(content,dy,fs,fw,op){{
+        const t=document.createElementNS(ns,'text');
+        t.setAttribute('x',cx); t.setAttribute('y',cy+dy);
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('font-size',fs); t.setAttribute('font-weight',fw||'400');
+        t.setAttribute('font-family','system-ui,sans-serif');
+        t.setAttribute('fill',r.text); t.setAttribute('opacity',op||'1');
+        t.setAttribute('clip-path',`url(#${{cid}})`);
+        t.textContent=content;
+        g.appendChild(t);
+      }}
+
+      if(minD>35){{
+        txt(r.ticker, minD>75?-22:(minD>50?-10:0), minD>75?15:12, '700');
+      }}
+      if(minD>75){{
+        txt('점수 '+r.score,        -5,  11, '400', '0.85');
+        txt('$'+r.amount.toLocaleString(), 10, 10, '400', '0.75');
+        txt('낙폭 '+r.drop+'%  반등 +'+r.bounce+'%', 24, 9,  '400', '0.65');
+      }} else if(minD>50){{
+        txt(r.pct+'% / 점수'+r.score, 8, 10, '400', '0.8');
+      }}
+
+      svg.appendChild(g);
+    }}
+  }}
+
+  render();
+  window.addEventListener('resize', ()=>{{
+    clearTimeout(window._hmt);
+    window._hmt=setTimeout(render,100);
+  }});
+}})();
+</script>"""
+
+
 def regime_banner(macro_regime):
     if not macro_regime:
         return ""
@@ -960,6 +1116,8 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
 {macro_section(macro, market_news)}
 
 {regime_banner(macro_regime)}
+
+{heatmap_section(results)}
 
 <h2>전일 대비 비교</h2>
 {comparison_section(comparison)}
