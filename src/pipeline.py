@@ -186,14 +186,26 @@ def fetch_macro():
     return result
 
 
+def _news_url(content):
+    return ((content.get("canonicalUrl") or {}).get("url") or
+            (content.get("clickThroughUrl") or {}).get("url") or "")
+
+
 def fetch_market_news():
-    """SPY / QQQ 뉴스로 시장 전반 헤드라인 수집"""
+    """SPY 뉴스로 시장 전반 헤드라인 수집"""
     try:
         news = yf.Ticker("SPY").news or []
-        return [{"title": n.get("content", {}).get("title", ""),
-                 "date":  n.get("content", {}).get("pubDate", "")[:10],
-                 "source":n.get("content", {}).get("provider", {}).get("displayName", "")}
-                for n in news[:6] if n.get("content", {}).get("title")]
+        result = []
+        for n in news[:6]:
+            c = n.get("content", {})
+            title = c.get("title", "")
+            if not title:
+                continue
+            result.append({"title": title,
+                            "date":   c.get("pubDate", "")[:10],
+                            "source": c.get("provider", {}).get("displayName", ""),
+                            "url":    _news_url(c)})
+        return result
     except Exception:
         return []
 
@@ -201,10 +213,14 @@ def fetch_market_news():
 def fetch_news(ticker):
     try:
         news = yf.Ticker(ticker).news or []
-        return [{"title": n.get("content", {}).get("title", ""),
-                 "date":  n.get("content", {}).get("pubDate", ""),
-                 "source":n.get("content", {}).get("provider", {}).get("displayName", "")}
-                for n in news[:6]]
+        result = []
+        for n in news[:6]:
+            c = n.get("content", {})
+            result.append({"title":  c.get("title", ""),
+                            "date":   c.get("pubDate", ""),
+                            "source": c.get("provider", {}).get("displayName", ""),
+                            "url":    _news_url(c)})
+        return result
     except Exception:
         return []
 
@@ -548,7 +564,15 @@ def card(r):
     warnings_h = "".join(f'<div class="signal-neg">! {x}</div>' for x in v["warnings"])
     temp_h     = "".join(f'<div class="signal-pos" style="font-size:13px">+ {x}</div>' for x in a["temporary_factors"])
     struct_h   = "".join(f'<div class="signal-neg" style="font-size:13px">- {x}</div>' for x in a["structural_factors"])
-    news_h     = "".join(f'<div class="news-item"><div>{n["title"][:80]}{"…" if len(n["title"])>80 else ""}</div><small class="muted">{n["source"]} · {n["date"][:10]}</small></div>' for n in r["news"][:5])
+    news_h     = "".join(
+        f'<div class="news-item">'
+        f'<a href="{n.get("url","#") or "#"}" target="_blank" rel="noopener noreferrer" '
+        f'style="color:inherit;text-decoration:none;font-weight:500">'
+        f'{n["title"][:80]}{"…" if len(n["title"])>80 else ""}</a>'
+        f'<small class="muted"> · {n["source"]} · {n["date"][:10]}</small>'
+        f'</div>'
+        for n in r["news"][:5]
+    )
     sig_col    = "#0F6E56" if ins.get("net_signal")=="BUYING" else "#A32D2D" if ins.get("net_signal")=="SELLING" else "#888"
     ins_h      = (f'<span style="color:{sig_col};font-weight:500">{ins["net_signal"]}</span> (매수 {ins["buys"]} / 매도 {ins["sells"]})'
                   + "".join(f'<div class="muted" style="font-size:12px">{d}</div>' for d in ins.get("details",[])[:3])
@@ -672,8 +696,12 @@ def macro_section(macro, market_news):
     news_h = ""
     if market_news:
         items = "".join(
-            f'<div class="mkt-news-item"><span class="mkt-news-title">{n["title"][:90]}{"…" if len(n["title"])>90 else ""}</span>'
-            f'<span class="muted" style="font-size:11px;white-space:nowrap"> · {n["source"]} {n["date"]}</span></div>'
+            f'<div class="mkt-news-item">'
+            f'<a class="mkt-news-title" href="{n.get("url","#") or "#"}" target="_blank" rel="noopener noreferrer" '
+            f'style="color:inherit;text-decoration:none;font-weight:500">'
+            f'{n["title"][:90]}{"…" if len(n["title"])>90 else ""}</a>'
+            f'<span class="muted" style="font-size:11px;white-space:nowrap"> · {n["source"]} {n["date"]}</span>'
+            f'</div>'
             for n in market_news[:5]
         )
         news_h = f'<div class="mkt-news-wrap"><div class="mkt-news-header">📰 시장 주요 뉴스</div>{items}</div>'
