@@ -96,7 +96,7 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
   <div>
     <h1>📈 Fallen Angel Daily Report</h1>
     <p class="muted" style="font-size:13px;margin:3px 0">
-      2026-05-18 · 업데이트: 2026-05-18 07:55 KST · 자본금 $50,000 · S&amp;P 500 유니버스
+      2026-05-18 · 업데이트: 2026-05-18 08:39 KST · 자본금 $50,000 · S&amp;P 500 유니버스
     </p>
   </div>
   <div style="font-size:12px;color:#aaa;text-align:right">
@@ -131,17 +131,17 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
         </div><div class="macro-tile">
             <div class="macro-name">달러인덱스</div>
             <div class="macro-price">99.3</div>
-            <div class="macro-chg" style="color:#0F6E56">▲ +0.01%</div>
+            <div class="macro-chg" style="color:#0F6E56">▲ +0.04%</div>
             
         </div><div class="macro-tile">
             <div class="macro-name">금</div>
-            <div class="macro-price">$4,554.30</div>
-            <div class="macro-chg" style="color:#A32D2D">▼ -0.03%</div>
+            <div class="macro-price">$4,543.00</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -0.28%</div>
             
         </div><div class="macro-tile">
             <div class="macro-name">WTI 원유</div>
-            <div class="macro-price">$102.31</div>
-            <div class="macro-chg" style="color:#A32D2D">▼ -2.95%</div>
+            <div class="macro-price">$102.60</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -2.68%</div>
             
         </div></div>
   <div class="mkt-news-wrap"><div class="mkt-news-header">📰 시장 주요 뉴스</div><div class="mkt-news-item"><a class="mkt-news-title" href="https://247wallst.com/personal-finance/2026/05/17/the-40000-tax-move-that-comes-after-your-401k-hits-its-limit/" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;font-weight:500">The $40,000 Tax Move That Comes After Your 401(k) Hits Its Limit</a><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-17</span></div><div class="mkt-news-item"><a class="mkt-news-title" href="https://247wallst.com/investing/2026/05/17/historian-dividends-were-90-of-returns-until-michael-jacksons-thriller-then-everything-changed/" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;font-weight:500">Historian: Dividends Were 90% of Returns Until Michael Jackson’s Thriller, Then Everything…</a><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-17</span></div><div class="mkt-news-item"><a class="mkt-news-title" href="https://247wallst.com/personal-finance/2026/05/16/ben-carlson-says-skip-the-luxury-car-and-house-hunt-smart-thats-real-inflation-protection/" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;font-weight:500">Ben Carlson Says Skip the Luxury Car and House Hunt Smart. That’s Real Inflation Protectio…</a><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><a class="mkt-news-title" href="https://247wallst.com/investing/2026/05/16/nanc-traders-beat-the-crowd-by-33-points-and-the-difference-keeps-growing/" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;font-weight:500">NANC Traders Beat the Crowd by 33 Points and the Difference Keeps Growing</a><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><a class="mkt-news-title" href="https://247wallst.com/personal-finance/2026/05/16/just-because-moneys-in-your-roth-ira-doesnt-mean-youre-investing-it/" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;font-weight:500">Just Because Money’s in Your Roth IRA Doesn’t Mean You’re Investing It</a><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div></div>
@@ -156,6 +156,131 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
   </div>
   <div class="regime-warn">⚠ 10Y 금리 4.59% 급등 중 — 고PER 성장주 -15점</div><div class="regime-note">✓ S&P500(7,408) 200일선(6,780) 상회 — 강세장 기조</div>
 </div>
+
+
+<div style="margin:0 0 6px">
+  <div style="font-size:16px;font-weight:600;margin:28px 0 12px;padding:0 0 8px;border-bottom:2px solid #e5e7eb">
+    📦 포트폴리오 히트맵
+    <span style="font-size:12px;font-weight:400;color:#888;margin-left:8px">크기 = 투자금액 비중</span>
+  </div>
+  <svg id="heatmap-svg" style="width:100%;display:block;border-radius:12px" height="300"></svg>
+</div>
+<script>
+(function(){
+  const D = [{"ticker": "TTD", "grade": "STRONG BUY", "score": 76.71513366666667, "amount": 4991.4, "pct": 10.0, "drop": -42.6, "bounce": 5.3, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "ACN", "grade": "STRONG BUY", "score": 69.48413358333333, "amount": 4895.78, "pct": 9.8, "drop": -40.3, "bounce": 5.8, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "BSX", "grade": "STRONG BUY", "score": 62.7745, "amount": 4951.92, "pct": 9.9, "drop": -43.8, "bounce": 0.0, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "INTU", "grade": "STRONG BUY", "score": 66.01160033333333, "amount": 4716.0, "pct": 9.4, "drop": -30.1, "bounce": 12.0, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "NOW", "grade": "STRONG BUY", "score": 64.32026666666667, "amount": 4943.64, "pct": 9.9, "drop": -30.3, "bounce": 14.5, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "MKC", "grade": "STRONG BUY", "score": 60.463725, "amount": 4959.45, "pct": 9.9, "drop": -34.7, "bounce": 1.6, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "RMD", "grade": "STRONG BUY", "score": 65.76593333333334, "amount": 4845.12, "pct": 9.7, "drop": -26.5, "bounce": 1.9, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "VEEV", "grade": "STRONG BUY", "score": 62.57788333333333, "amount": 4924.66, "pct": 9.8, "drop": -29.5, "bounce": 4.9, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "BX", "grade": "STRONG BUY", "score": 82.243234, "amount": 4951.38, "pct": 9.9, "drop": -22.8, "bounce": 16.5, "bg": "#c3f0d8", "border": "#6fcf97", "text": "#1b4332", "label_bg": "#6fcf97"}, {"ticker": "PLTR", "grade": "WATCH", "score": 42.876149999999996, "amount": 4957.63, "pct": 9.9, "drop": -21.0, "bounce": 4.6, "bg": "#fde8c8", "border": "#f5a623", "text": "#6b3a00", "label_bg": "#f5a623"}];
+
+  function layout(items, x, y, w, h) {
+    if (!items.length) return [];
+    if (items.length === 1) return [{...items[0], x, y, w, h}];
+    const tot = items.reduce((s,d)=>s+d.amount,0);
+    let best = 1, bestAR = Infinity, run = 0;
+    for (let i=1; i<items.length; i++) {
+      run += items[i-1].amount;
+      const a=run/tot, b=1-a;
+      const ar = w>=h
+        ? Math.max((w*a)/h,h/(w*a)) + Math.max((w*b)/h,h/(w*b))
+        : Math.max(w/(h*a),(h*a)/w) + Math.max(w/(h*b),(h*b)/w);
+      if(ar<bestAR){bestAR=ar;best=i;}
+    }
+    const aI=items.slice(0,best), bI=items.slice(best);
+    const aR=aI.reduce((s,d)=>s+d.amount,0)/tot;
+    return w>=h
+      ? [...layout(aI,x,y,w*aR,h),   ...layout(bI,x+w*aR,y,w*(1-aR),h)]
+      : [...layout(aI,x,y,w,h*aR),   ...layout(bI,x,y+h*aR,w,h*(1-aR))];
+  }
+
+  function render(){
+    const svg = document.getElementById('heatmap-svg');
+    if(!svg) return;
+    const W = svg.parentElement.clientWidth || 960;
+    const H = 300;
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const sorted = [...D].sort((a,b)=>b.amount-a.amount);
+    const rects  = layout(sorted, 0, 0, W, H);
+    const ns='http://www.w3.org/2000/svg';
+    svg.innerHTML='';
+    const G=4;
+
+    // Legend
+    const grades=[['STRONG BUY','#c3f0d8','#6fcf97','#1b4332'],['BUY','#c2e4f5','#56b4d3','#0d2f45'],['WATCH','#fde8c8','#f5a623','#6b3a00']];
+    let lx=W-8;
+    for(const [lb,bg,bd,tc] of [...grades].reverse()){
+      const lw=lb.length*6.5+16;
+      lx-=lw+6;
+      const lg=document.createElementNS(ns,'g');
+      const lr=document.createElementNS(ns,'rect');
+      lr.setAttribute('x',lx); lr.setAttribute('y',6);
+      lr.setAttribute('width',lw); lr.setAttribute('height',18);
+      lr.setAttribute('rx','4'); lr.setAttribute('fill',bg);
+      lr.setAttribute('stroke',bd); lr.setAttribute('stroke-width','1');
+      lg.appendChild(lr);
+      const lt=document.createElementNS(ns,'text');
+      lt.setAttribute('x',lx+lw/2); lt.setAttribute('y',19);
+      lt.setAttribute('text-anchor','middle');
+      lt.setAttribute('font-size','10'); lt.setAttribute('font-weight','600');
+      lt.setAttribute('font-family','sans-serif'); lt.setAttribute('fill',tc);
+      lt.textContent=lb; lg.appendChild(lt);
+      svg.appendChild(lg);
+    }
+
+    for(const r of rects){
+      const G2=G/2;
+      const rx=r.x+G2, ry=r.y+G2, rw=Math.max(0,r.w-G), rh=Math.max(0,r.h-G);
+      const g=document.createElementNS(ns,'g');
+
+      const rect=document.createElementNS(ns,'rect');
+      rect.setAttribute('x',rx); rect.setAttribute('y',ry);
+      rect.setAttribute('width',rw); rect.setAttribute('height',rh);
+      rect.setAttribute('rx','8'); rect.setAttribute('fill',r.bg);
+      rect.setAttribute('stroke',r.border); rect.setAttribute('stroke-width','1.5');
+      g.appendChild(rect);
+
+      // Clip path so text doesn't overflow tile
+      const cid='c'+r.ticker;
+      const clip=document.createElementNS(ns,'clipPath');
+      clip.setAttribute('id',cid);
+      const cr=document.createElementNS(ns,'rect');
+      cr.setAttribute('x',rx+4); cr.setAttribute('y',ry+4);
+      cr.setAttribute('width',Math.max(0,rw-8)); cr.setAttribute('height',Math.max(0,rh-8));
+      clip.appendChild(cr); svg.appendChild(clip);
+
+      const cx=rx+rw/2, cy=ry+rh/2;
+      const minD=Math.min(rw,rh);
+
+      function txt(content,dy,fs,fw,op){
+        const t=document.createElementNS(ns,'text');
+        t.setAttribute('x',cx); t.setAttribute('y',cy+dy);
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('font-size',fs); t.setAttribute('font-weight',fw||'400');
+        t.setAttribute('font-family','system-ui,sans-serif');
+        t.setAttribute('fill',r.text); t.setAttribute('opacity',op||'1');
+        t.setAttribute('clip-path',`url(#${cid})`);
+        t.textContent=content;
+        g.appendChild(t);
+      }
+
+      if(minD>35){
+        txt(r.ticker, minD>75?-22:(minD>50?-10:0), minD>75?15:12, '700');
+      }
+      if(minD>75){
+        txt('점수 '+r.score,        -5,  11, '400', '0.85');
+        txt('$'+r.amount.toLocaleString(), 10, 10, '400', '0.75');
+        txt('낙폭 '+r.drop+'%  반등 +'+r.bounce+'%', 24, 9,  '400', '0.65');
+      } else if(minD>50){
+        txt(r.pct+'% / 점수'+r.score, 8, 10, '400', '0.8');
+      }
+
+      svg.appendChild(g);
+    }
+  }
+
+  render();
+  window.addEventListener('resize', ()=>{
+    clearTimeout(window._hmt);
+    window._hmt=setTimeout(render,100);
+  });
+})();
+</script>
 
 <h2>전일 대비 비교</h2>
 
