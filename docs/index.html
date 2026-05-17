@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fallen Angel Report · 2026-05-17</title>
+<title>Fallen Angel Report · 2026-05-18</title>
 <style>
 :root{--green:#0F6E56;--blue:#185FA5;--amber:#854F0B;--red:#A32D2D;--border:#e5e7eb;--bg:#f8f9fa;--radius:10px}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -60,10 +60,28 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
 /* Header bar */
 .header-bar{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 20px;flex-wrap:wrap;gap:8px}
 .disclaimer{font-size:12px;color:#888;margin:28px 0 0;padding:14px;background:var(--bg);border-radius:var(--radius)}
+/* Macro section */
+.macro-section{background:#f8f9fa;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 0 24px}
+.macro-header{font-size:13px;font-weight:600;color:#555;margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px}
+.macro-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:0 0 14px}
+.macro-tile{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.macro-name{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin:0 0 4px}
+.macro-price{font-size:15px;font-weight:600;font-family:monospace}
+.macro-chg{font-size:12px;font-weight:500;margin:2px 0}
+.macro-fear{font-size:10px;font-weight:600;margin:3px 0}
+.mkt-news-wrap{border-top:1px solid var(--border);padding-top:12px}
+.mkt-news-header{font-size:12px;font-weight:600;color:#555;margin:0 0 8px;text-transform:uppercase;letter-spacing:.4px}
+.mkt-news-item{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-bottom:.5px solid #f0f0f0;font-size:13px}
+.mkt-news-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){
+  .macro-grid{grid-template-columns:repeat(3,1fr)}
+  .mkt-news-item{flex-direction:column;gap:2px}
+}
 @media(max-width:600px){
   .stat-grid.four{grid-template-columns:repeat(2,1fr)}
   .mini-grid.four{grid-template-columns:repeat(2,1fr)}
   body{padding:12px 10px}
+  .macro-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
@@ -73,7 +91,7 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
   <div>
     <h1>📈 Fallen Angel Daily Report</h1>
     <p class="muted" style="font-size:13px;margin:3px 0">
-      2026-05-17 · 업데이트: 2026-05-17 23:55 KST · 자본금 $50,000 · S&amp;P 500 유니버스
+      2026-05-18 · 업데이트: 2026-05-18 00:34 KST · 자본금 $50,000 · S&amp;P 500 유니버스
     </p>
   </div>
   <div style="font-size:12px;color:#aaa;text-align:right">
@@ -82,15 +100,184 @@ code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;
   </div>
 </div>
 
-<div class="stat-grid four">
-    <div class="stat"><div class="sl">분석 종목</div><div class="sv">10</div></div>
-    <div class="stat"><div class="sl">매수 가능</div><div class="sv green">10</div></div>
-    <div class="stat"><div class="sl">배분 금액</div><div class="sv">$49,137</div></div>
-    <div class="stat"><div class="sl">총 리스크</div><div class="sv red">$2,683</div></div>
+
+<div class="macro-section">
+  <div class="macro-header">📊 오늘의 시장 현황</div>
+  <div class="macro-grid"><div class="macro-tile">
+            <div class="macro-name">S&P 500</div>
+            <div class="macro-price">$7,408.50</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -1.24%</div>
+            
+        </div><div class="macro-tile">
+            <div class="macro-name">NASDAQ</div>
+            <div class="macro-price">$26,225.14</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -1.54%</div>
+            
+        </div><div class="macro-tile">
+            <div class="macro-name">VIX</div>
+            <div class="macro-price">$18.43</div>
+            <div class="macro-chg" style="color:#0F6E56">▲ +6.78%</div>
+            <div class="macro-fear" style="color:#3a8c3f">탐욕</div>
+        </div><div class="macro-tile">
+            <div class="macro-name">10Y 국채금리</div>
+            <div class="macro-price">4.59%</div>
+            <div class="macro-chg" style="color:#0F6E56">▲ +3.00%</div>
+            
+        </div><div class="macro-tile">
+            <div class="macro-name">달러인덱스</div>
+            <div class="macro-price">99.3</div>
+            <div class="macro-chg" style="color:#0F6E56">▲ +0.39%</div>
+            
+        </div><div class="macro-tile">
+            <div class="macro-name">금</div>
+            <div class="macro-price">$4,561.90</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -2.48%</div>
+            
+        </div><div class="macro-tile">
+            <div class="macro-name">WTI 원유</div>
+            <div class="macro-price">$101.02</div>
+            <div class="macro-chg" style="color:#A32D2D">▼ -0.15%</div>
+            
+        </div></div>
+  <div class="mkt-news-wrap"><div class="mkt-news-header">📰 시장 주요 뉴스</div><div class="mkt-news-item"><span class="mkt-news-title">Ben Carlson Says Skip the Luxury Car and House Hunt Smart. That’s Real Inflation Protectio…</span><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><span class="mkt-news-title">NANC Traders Beat the Crowd by 33 Points and the Difference Keeps Growing</span><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><span class="mkt-news-title">Just Because Money’s in Your Roth IRA Doesn’t Mean You’re Investing It</span><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><span class="mkt-news-title">Why 90% of Professional Fund Managers Lose to the S&P 500. Here’s the One Strategy That Wo…</span><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div><div class="mkt-news-item"><span class="mkt-news-title">I’m 54 with no retirement savings: a financial advisor says I can still become a millionai…</span><span class="muted" style="font-size:11px;white-space:nowrap"> · 24/7 Wall St. 2026-05-16</span></div></div>
 </div>
 
 <h2>전일 대비 비교</h2>
-<p style="color:#888;padding:16px;background:#f8f9fa;border-radius:8px">전일 데이터 없음 (첫 실행)</p>
+
+    <div class="stat-grid four">
+        <div class="stat" style="border-left:3px solid #0F6E56"><div class="sl">🆕 신규 진입</div><div class="sv green">0</div></div>
+        <div class="stat" style="border-left:3px solid #A32D2D"><div class="sl">🚪 이탈</div><div class="sv red">0</div></div>
+        <div class="stat" style="border-left:3px solid #0F6E56"><div class="sl">⬆ 등급 상향</div><div class="sv green">0</div></div>
+        <div class="stat" style="border-left:3px solid #A32D2D"><div class="sl">⬇ 등급 하향</div><div class="sv red">0</div></div>
+    </div>
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Ticker</th><th>Name</th><th>변화</th><th>전일 등급</th><th>오늘 등급</th>
+        <th>Score</th><th>Score Δ</th><th>현재가 (전일比)</th><th>하락 성격</th><th>낙폭</th><th>반등</th></tr></thead>
+        <tbody><tr class="chg-same">
+            <td><b>BX</b></td>
+            <td class="muted">Blackstone Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>82</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$117.89 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span></td>
+            <td style="color:#A32D2D">-22.8%</td>
+            <td style="color:#0F6E56">+16.5%</td>
+        </tr><tr class="chg-same">
+            <td><b>TTD</b></td>
+            <td class="muted">The Trade Desk, Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>77</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$21.15 <small style="color:#A32D2D">(-0.0%)</small></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span></td>
+            <td style="color:#A32D2D">-42.6%</td>
+            <td style="color:#0F6E56">+5.3%</td>
+        </tr><tr class="chg-same">
+            <td><b>ACN</b></td>
+            <td class="muted">Accenture plc</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>69</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$168.82 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span></td>
+            <td style="color:#A32D2D">-40.3%</td>
+            <td style="color:#0F6E56">+5.8%</td>
+        </tr><tr class="chg-same">
+            <td><b>INTU</b></td>
+            <td class="muted">Intuit Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>66</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$393.00 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span></td>
+            <td style="color:#A32D2D">-30.1%</td>
+            <td style="color:#0F6E56">+12.0%</td>
+        </tr><tr class="chg-same">
+            <td><b>RMD</b></td>
+            <td class="muted">ResMed Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>66</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$201.88 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-26.5%</td>
+            <td style="color:#0F6E56">+1.9%</td>
+        </tr><tr class="chg-same">
+            <td><b>NOW</b></td>
+            <td class="muted">ServiceNow, Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>64</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$95.07 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-30.3%</td>
+            <td style="color:#0F6E56">+14.5%</td>
+        </tr><tr class="chg-same">
+            <td><b>BSX</b></td>
+            <td class="muted">Boston Scientific Co</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>63</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$52.68 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-43.8%</td>
+            <td style="color:#0F6E56">+0.0%</td>
+        </tr><tr class="chg-same">
+            <td><b>VEEV</b></td>
+            <td class="muted">Veeva Systems Inc.</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>63</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$158.86 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-29.5%</td>
+            <td style="color:#0F6E56">+4.9%</td>
+        </tr><tr class="chg-same">
+            <td><b>MKC</b></td>
+            <td class="muted">McCormick & Company,</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+            <td><b>60</b></td>
+            <td style="color:#888">+0.0</td>
+            <td>$46.35 <small style="color:#0F6E56">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-34.7%</td>
+            <td style="color:#0F6E56">+1.6%</td>
+        </tr><tr class="chg-same">
+            <td><b>PLTR</b></td>
+            <td class="muted">Palantir Technologie</td>
+            <td><span class="badge" style="background:#f1f3f5;color:#888">— SAME</span></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">BUY</span></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">BUY</span></td>
+            <td><b>58</b></td>
+            <td style="color:#A32D2D">-0.0</td>
+            <td>$133.99 <small style="color:#888">(+0.0%)</small></td>
+            <td><span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span></td>
+            <td style="color:#A32D2D">-21.0%</td>
+            <td style="color:#0F6E56">+4.6%</td>
+        </tr></tbody>
+    </table>
+    </div>
+    <p class="muted" style="font-size:12px;margin:6px 0">전일 기준: 2026-05-17</p>
 
 <h2>포트폴리오 요약</h2><div class="table-wrap"><table><thead><tr><th>Ticker</th><th>등급</th><th>수량</th><th>금액</th><th>비중</th><th>손절</th><th>목표 1</th><th>R/R</th></tr></thead><tbody><tr>
         <td><b>TTD</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
