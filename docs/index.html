@@ -1,47 +1,657 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fallen Angel Screener</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-      padding: 2rem;
-    }
-    .logo { font-size: 3rem; margin-bottom: 1rem; }
-    h1 { font-size: 2rem; font-weight: 700; color: #58a6ff; margin-bottom: 0.5rem; }
-    p { font-size: 1.1rem; color: #8b949e; margin-bottom: 2rem; line-height: 1.6; }
-    .badge {
-      display: inline-block;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 0.8rem 1.5rem;
-      font-size: 0.95rem;
-      color: #8b949e;
-    }
-    .badge span { color: #3fb950; font-weight: 600; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fallen Angel Report · 2026-05-17</title>
+<style>
+:root{--green:#0F6E56;--blue:#185FA5;--amber:#854F0B;--red:#A32D2D;--border:#e5e7eb;--bg:#f8f9fa;--radius:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI",sans-serif;max-width:1000px;margin:0 auto;padding:24px 16px;color:#1a1a1a;line-height:1.6;background:#fff}
+h1{font-size:22px;font-weight:700}
+h2{font-size:16px;font-weight:600;margin:28px 0 12px;padding:0 0 8px;border-bottom:2px solid var(--border)}
+.muted{color:#888} .green{color:var(--green)} .red{color:var(--red)}
+.badge{padding:2px 9px;border-radius:6px;font-size:12px;font-weight:500;white-space:nowrap}
+/* Summary stats */
+.stat-grid{display:grid;gap:10px;margin:0 0 16px}
+.stat-grid.four{grid-template-columns:repeat(4,1fr)}
+.stat-grid.two{grid-template-columns:repeat(2,1fr)}
+.stat{background:var(--bg);padding:12px 14px;border-radius:var(--radius)}
+.sl{font-size:11px;text-transform:uppercase;color:#888;letter-spacing:.4px}
+.sv{font-size:24px;font-weight:600;margin:2px 0}
+.sv.green{color:var(--green)} .sv.red{color:var(--red)}
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);color:#888;font-weight:500;font-size:12px;white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid #f0f0f0;white-space:nowrap}
+tr.chg-new{background:#fafffe} tr.chg-exit{background:#fffafa}
+/* Cards */
+.card{border:1px solid var(--border);border-left:4px solid #888;border-radius:var(--radius);padding:18px;margin:0 0 14px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap;gap:8px}
+.ticker{font-size:20px;font-weight:700;font-family:monospace}
+.sector-tag{font-size:11px;color:#aaa;margin-left:6px}
+.card-badges{display:flex;align-items:center;gap:6px}
+.score-num{font-size:18px;font-weight:600}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 12px}
+@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--bg);padding:6px 10px;border-radius:6px}
+.kl{font-size:11px;color:#888} .kv{font-size:15px;font-weight:500}
+/* Details */
+details{border-top:1px solid #f0f0f0;margin:0} details:last-of-type{border-bottom:1px solid #f0f0f0}
+details summary{cursor:pointer;font-size:14px;font-weight:500;padding:8px 0;list-style:none;user-select:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▶ ";font-size:10px;color:#aaa}
+details[open] summary::before{content:"▼ "}
+.detail-body{padding:8px 0 10px;font-size:13px}
+.signal-pos{color:var(--green);padding:2px 0} .signal-neg{color:var(--red);padding:2px 0}
+.news-item{padding:4px 0;border-bottom:.5px solid #f0f0f0;font-size:13px}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+/* Trade plan */
+.trade-section{margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border)}
+.trade-title{font-weight:600;font-size:14px;margin:0 0 8px}
+.mini-grid{display:grid;gap:8px;margin:0 0 8px} .mini-grid.four{grid-template-columns:repeat(4,1fr)}
+.mini-stat{background:var(--bg);padding:8px 12px;border-radius:8px}
+.trade-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.trade-table td{padding:4px 8px}
+.stop-row td{background:#FCEBEB} .stop-row td:nth-child(3){color:var(--red)}
+.no-trade{padding:12px;background:var(--bg);border-radius:8px;text-align:center;color:#888}
+code{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px}
+/* Header bar */
+.header-bar{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 20px;flex-wrap:wrap;gap:8px}
+.disclaimer{font-size:12px;color:#888;margin:28px 0 0;padding:14px;background:var(--bg);border-radius:var(--radius)}
+@media(max-width:600px){
+  .stat-grid.four{grid-template-columns:repeat(2,1fr)}
+  .mini-grid.four{grid-template-columns:repeat(2,1fr)}
+  body{padding:12px 10px}
+}
+</style>
 </head>
 <body>
-  <div class="logo">&#128200;</div>
-  <h1>Fallen Angel Screener</h1>
-  <p>
-    S&amp;P 500 고품질 낙폭 과대 종목을 매일 아침 자동으로 스크리닝합니다.<br />
-    첫 번째 리포트는 GitHub Actions가 실행된 후 이 페이지에 자동으로 게시됩니다.
-  </p>
-  <div class="badge">
-    매일 <span>07:00 KST</span> 자동 업데이트 &nbsp;&#8226;&nbsp; Powered by GitHub Actions
+
+<div class="header-bar">
+  <div>
+    <h1>📈 Fallen Angel Daily Report</h1>
+    <p class="muted" style="font-size:13px;margin:3px 0">
+      2026-05-17 · 업데이트: 2026-05-17 23:55 KST · 자본금 $50,000 · S&amp;P 500 유니버스
+    </p>
   </div>
+  <div style="font-size:12px;color:#aaa;text-align:right">
+    매일 오전 7시 자동 업데이트<br>
+    <span style="color:var(--green)">●</span> 데이터: yfinance
+  </div>
+</div>
+
+<div class="stat-grid four">
+    <div class="stat"><div class="sl">분석 종목</div><div class="sv">10</div></div>
+    <div class="stat"><div class="sl">매수 가능</div><div class="sv green">10</div></div>
+    <div class="stat"><div class="sl">배분 금액</div><div class="sv">$49,137</div></div>
+    <div class="stat"><div class="sl">총 리스크</div><div class="sv red">$2,683</div></div>
+</div>
+
+<h2>전일 대비 비교</h2>
+<p style="color:#888;padding:16px;background:#f8f9fa;border-radius:8px">전일 데이터 없음 (첫 실행)</p>
+
+<h2>포트폴리오 요약</h2><div class="table-wrap"><table><thead><tr><th>Ticker</th><th>등급</th><th>수량</th><th>금액</th><th>비중</th><th>손절</th><th>목표 1</th><th>R/R</th></tr></thead><tbody><tr>
+        <td><b>TTD</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>236</td><td>$4,991</td>
+        <td>10.0%</td>
+        <td class="red">$19.93 (-5.7%)</td>
+        <td class="green">$28.45 (+34.5%)</td>
+        <td>1:9.5</td>
+    </tr><tr>
+        <td><b>ACN</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>29</td><td>$4,896</td>
+        <td>9.8%</td>
+        <td class="red">$160.38 (-5.0%)</td>
+        <td class="green">$221.17 (+31.0%)</td>
+        <td>1:9.8</td>
+    </tr><tr>
+        <td><b>BSX</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>94</td><td>$4,952</td>
+        <td>9.9%</td>
+        <td class="red">$50.05 (-5.0%)</td>
+        <td class="green">$73.24 (+39.0%)</td>
+        <td>1:11.7</td>
+    </tr><tr>
+        <td><b>INTU</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>12</td><td>$4,716</td>
+        <td>9.4%</td>
+        <td class="red">$373.35 (-5.0%)</td>
+        <td class="green">$456.59 (+16.2%)</td>
+        <td>1:5.9</td>
+    </tr><tr>
+        <td><b>NOW</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>52</td><td>$4,944</td>
+        <td>9.9%</td>
+        <td class="red">$87.46 (-8.0%)</td>
+        <td class="green">$109.67 (+15.4%)</td>
+        <td>1:3.7</td>
+    </tr><tr>
+        <td><b>MKC</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>107</td><td>$4,959</td>
+        <td>9.9%</td>
+        <td class="red">$44.03 (-5.0%)</td>
+        <td class="green">$58.31 (+25.8%)</td>
+        <td>1:7.9</td>
+    </tr><tr>
+        <td><b>RMD</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>24</td><td>$4,845</td>
+        <td>9.7%</td>
+        <td class="red">$191.79 (-5.0%)</td>
+        <td class="green">$236.34 (+17.1%)</td>
+        <td>1:5.3</td>
+    </tr><tr>
+        <td><b>VEEV</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>31</td><td>$4,925</td>
+        <td>9.8%</td>
+        <td class="red">$150.92 (-5.0%)</td>
+        <td class="green">$188.35 (+18.6%)</td>
+        <td>1:6.0</td>
+    </tr><tr>
+        <td><b>BX</b></td><td><span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span></td>
+        <td>42</td><td>$4,951</td>
+        <td>9.9%</td>
+        <td class="red">$112.00 (-5.0%)</td>
+        <td class="green">$126.97 (+7.7%)</td>
+        <td>1:3.7</td>
+    </tr><tr>
+        <td><b>PLTR</b></td><td><span class="badge" style="background:#E6F1FB;color:#185FA5">BUY</span></td>
+        <td>37</td><td>$4,958</td>
+        <td>9.9%</td>
+        <td class="red">$126.18 (-5.8%)</td>
+        <td class="green">$148.83 (+11.1%)</td>
+        <td>1:3.2</td>
+    </tr></tbody></table></div><p class="muted" style="font-size:12px;margin:6px 0">잔여현금: $863 (2%) · 총 리스크: $2,683 (5.4%)</p>
+
+<h2>종목별 상세 분석</h2>
+
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">TTD</span>
+                <span class="muted"> The Trade Desk, Inc.</span>
+                <span class="sector-tag">Communication Services</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">77</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$21.15</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-42.6%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+5.3%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">16.7%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">9.7</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (11.8%)</div><div class="signal-pos" style="font-size:13px">+ Earnings dip (-20.0%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Fwd PE 9.7 (cheap)</div><div class="signal-pos">+ Bounce +5.3%</div><div class="signal-pos">+ Analyst: buy (31)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#888;font-weight:500">NEUTRAL</span> (매수 1 / 매도 1)<div class="muted" style="font-size:12px">SELL: FALBERG KATHRYN E. (152,828)</div><div class="muted" style="font-size:12px">BUY: GREEN JEFFREY TERRY (6,000,000)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (31명)<br>
+                목표가: $17.00 ~ $25.81 ~ $47.00<br>상승여력: <b class="green">+22%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">38</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -76%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>The Trade Desk (TTD) Stock Trades Down, Here Is Why</div><small class="muted">StockStory · 2026-05-17</small></div><div class="news-item"><div>Stocks making big moves yesterday: NESR, The Trade Desk, Vertiv, Hain Celestial,…</div><small class="muted">StockStory · 2026-05-15</small></div><div class="news-item"><div>Jim Cramer Reveals Why He’s ‘Dazzled” By Trade Desk (TTD)</div><small class="muted">Insider Monkey · 2026-05-14</small></div><div class="news-item"><div>We Think Trade Desk's (NASDAQ:TTD) Healthy Earnings Might Be Conservative</div><small class="muted">Simply Wall St. · 2026-05-14</small></div><div class="news-item"><div>Why The Trade Desk (TTD) Stock Is Down Today</div><small class="muted">StockStory · 2026-05-14</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">236</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,991</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">10.0%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:9.5</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$19.93</code></td>
+                <td class="red">-5.7%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$28.45</code></td><td class="green">+34.5%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$32.64</code></td><td class="green">+54.3%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$35.15</code></td><td class="green">+66.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">ACN</span>
+                <span class="muted"> Accenture plc</span>
+                <span class="sector-tag">Technology</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">69</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$168.82</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-40.3%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+5.8%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">24.8%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">11.3</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (8.3%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ Large upside to target (+47%)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Fwd PE 11.3 (cheap)</div><div class="signal-pos">+ Bounce +5.8%</div><div class="signal-pos">+ Analyst: buy (26)</div><div class="signal-pos">+ Upside to target: +47%</div><div class="signal-neg">! Insider selling (1 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 0 / 매도 1)<div class="muted" style="font-size:12px">SELL: EGAWA ATSUSHI (4,872)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (26명)<br>
+                목표가: $180.27 ~ $247.55 ~ $320.00<br>상승여력: <b class="green">+47%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">41</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -47%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>3 Leading Dividend Stocks Yielding Over 3%</div><small class="muted">Simply Wall St. · 2026-05-15</small></div><div class="news-item"><div>MARA Barely Moves Since Missing Q1 Earnings & Revenue Estimates</div><small class="muted">Zacks · 2026-05-15</small></div><div class="news-item"><div>3 Dividend Stocks To Consider For Your Portfolio</div><small class="muted">Simply Wall St. · 2026-05-15</small></div><div class="news-item"><div>Here’s Why Hedge Funds Are Still Bullish On Accenture (ACN) Despite Hitting 52-W…</div><small class="muted">Insider Monkey · 2026-05-15</small></div><div class="news-item"><div>ServiceNow AI Partnerships Aim To Turn Pilot Projects Into Core Workflows</div><small class="muted">Simply Wall St. · 2026-05-15</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">29</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,896</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.8%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:9.8</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$160.38</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$221.17</code></td><td class="green">+31.0%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$251.93</code></td><td class="green">+49.2%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$270.39</code></td><td class="green">+60.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">BSX</span>
+                <span class="muted"> Boston Scientific Corporation</span>
+                <span class="sector-tag">Healthcare</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">63</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$52.68</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-43.8%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+0.0%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">14.7%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">14.0</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (11.6%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (strong_buy)</div><div class="signal-pos" style="font-size:13px">+ Large upside to target (+62%)</div><div class="signal-pos" style="font-size:13px">+ RSI 21 (oversold)</div><div class="signal-neg" style="font-size:13px">- No bounce — still falling</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Analyst: strong_buy (32)</div><div class="signal-pos">+ Upside to target: +62%</div><div class="signal-pos">+ RSI 21 (oversold)</div><div class="signal-neg">! No bounce — falling knife risk</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#888;font-weight:500">NEUTRAL</span> (매수 0 / 매도 0)</div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>strong_buy</b> (32명)<br>
+                목표가: $60.00 ~ $85.19 ~ $110.00<br>상승여력: <b class="green">+62%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#0F6E56">21</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -51%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>2 Large-Cap Stocks to Consider Right Now and 1 We Turn Down</div><small class="muted">StockStory · 2026-05-17</small></div><div class="news-item"><div>Elutia Inc. Q1 2026 Earnings Call Summary</div><small class="muted">Moby · 2026-05-15</small></div><div class="news-item"><div>Here's How Boston Scientific Is Expanding Its Global Growth</div><small class="muted">Zacks · 2026-05-14</small></div><div class="news-item"><div>Jim Cramer on Boston Scientific: “I Think You Gotta Hold It”</div><small class="muted">Insider Monkey · 2026-05-14</small></div><div class="news-item"><div>Jim Cramer Discusses the Performance of Danaher and Its Peers</div><small class="muted">Insider Monkey · 2026-05-14</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">94</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,952</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.9%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:11.7</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$50.05</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$73.24</code></td><td class="green">+39.0%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$83.51</code></td><td class="green">+58.5%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$89.68</code></td><td class="green">+70.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">INTU</span>
+                <span class="muted"> Intuit Inc.</span>
+                <span class="sector-tag">Technology</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">66</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$393.00</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-30.1%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+12.0%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">23.5%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">14.8</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (17.4%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (strong_buy)</div><div class="signal-pos" style="font-size:13px">+ Large upside to target (+51%)</div><div class="signal-pos" style="font-size:13px">+ Strong bounce +12.0%</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Quality 84/100 (top tier)</div><div class="signal-pos">+ Strong bounce +12.0%</div><div class="signal-pos">+ Analyst: strong_buy (32)</div><div class="signal-pos">+ Upside to target: +51%</div><div class="signal-neg">! Insider selling (1 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 0 / 매도 1)<div class="muted" style="font-size:12px">SELL: DALZELL RICHARD L (999)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>strong_buy</b> (32명)<br>
+                목표가: $425.00 ~ $592.33 ~ $916.00<br>상승여력: <b class="green">+51%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">51</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -51%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>Marqeta, Toast, Dolby Laboratories, Intuit, and GoDaddy Shares Plummet, What You…</div><small class="muted">StockStory · 2026-05-17</small></div><div class="news-item"><div>Is Intuit Stock Oversold Now, Finally Making It a Buy?</div><small class="muted">Motley Fool · 2026-05-15</small></div><div class="news-item"><div>Ahead of Intuit (INTU) Q3 Earnings: Get Ready With Wall Street Estimates for Key…</div><small class="muted">Zacks · 2026-05-15</small></div><div class="news-item"><div>Intuit (INTU) Valuation Check After A Year Of Share Price Weakness</div><small class="muted">Simply Wall St. · 2026-05-15</small></div><div class="news-item"><div>Intuit Expands Enterprise Suite With AI: Will It Boost Growth?</div><small class="muted">Zacks · 2026-05-14</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">12</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,716</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.4%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:5.9</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$373.35</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$456.59</code></td><td class="green">+16.2%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$509.41</code></td><td class="green">+29.6%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$562.71</code></td><td class="green">+43.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">NOW</span>
+                <span class="muted"> ServiceNow, Inc.</span>
+                <span class="sector-tag">Technology</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">64</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$95.07</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-30.3%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+14.5%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">16.1%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">18.9</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (22.1%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (strong_buy)</div><div class="signal-pos" style="font-size:13px">+ Large upside to target (+50%)</div><div class="signal-pos" style="font-size:13px">+ Strong bounce +14.5%</div><div class="signal-neg" style="font-size:13px">- Heavy insider selling (4 sells)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Strong bounce +14.5%</div><div class="signal-pos">+ Analyst: strong_buy (43)</div><div class="signal-pos">+ Upside to target: +50%</div><div class="signal-neg">! Insider selling (4 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 1 / 매도 4)<div class="muted" style="font-size:12px">SELL: FIPPS PAUL (151)</div><div class="muted" style="font-size:12px">SELL: CANNEY JACQUELINE P (8,927)</div><div class="muted" style="font-size:12px">BUY: MCDERMOTT WILLIAM R (28,682)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>strong_buy</b> (43명)<br>
+                목표가: $85.00 ~ $143.06 ~ $236.00<br>상승여력: <b class="green">+50%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">58</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -54%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>UiPath's Strong Cash Position Supports Strategic Flexibility</div><small class="muted">Zacks · 2026-05-15</small></div><div class="news-item"><div>Can an Expanding Clientele Boost ServiceNow's Top-Line Growth?</div><small class="muted">Zacks · 2026-05-15</small></div><div class="news-item"><div>ServiceNow AI Partnerships Aim To Turn Pilot Projects Into Core Workflows</div><small class="muted">Simply Wall St. · 2026-05-15</small></div><div class="news-item"><div>1 Incredible Artificial Intelligence (AI) Stock to Buy After Its Post-Earnings S…</div><small class="muted">Motley Fool · 2026-05-14</small></div><div class="news-item"><div>See ServiceNow Stock Heading Lower? This Trade Profits From Further Downside.</div><small class="muted">Investor's Business Daily · 2026-05-14</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">52</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,944</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.9%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:3.7</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$87.46</code></td>
+                <td class="red">-8.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$109.67</code></td><td class="green">+15.4%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$123.00</code></td><td class="green">+29.4%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$135.91</code></td><td class="green">+43.0%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">MKC</span>
+                <span class="muted"> McCormick & Company, Incorporat</span>
+                <span class="sector-tag">Consumer Defensive</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">60</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$46.35</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-34.7%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+1.6%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">25.3%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">13.8</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (16.7%)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ RSI 29 (oversold)</div><div class="signal-neg" style="font-size:13px">- Heavy insider selling (3 sells)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Analyst: buy (13)</div><div class="signal-pos">+ Upside to target: +33%</div><div class="signal-pos">+ RSI 29 (oversold)</div><div class="signal-neg">! Insider selling (3 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 1 / 매도 3)<div class="muted" style="font-size:12px">BUY: HATTERSLEY GAVIN D K (2,000)</div><div class="muted" style="font-size:12px">SELL: KURZIUS LAWRENCE ERIK (50,000)</div><div class="muted" style="font-size:12px">SELL: PRESTON MARGARET M V (7,150)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (13명)<br>
+                목표가: $51.00 ~ $61.62 ~ $77.00<br>상승여력: <b class="green">+33%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#0F6E56">29</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -39%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>A Look At McCormick (MKC) Valuation After New Old Bay Collectible Tins Launch</div><small class="muted">Simply Wall St. · 2026-05-17</small></div><div class="news-item"><div>3 Dividend Aristocrats Under $100 to Buy and Hold Forever</div><small class="muted">Barchart · 2026-05-15</small></div><div class="news-item"><div>GameStop's $56 Billion eBay Bid Faces Major Credit Rating Doubts</div><small class="muted">GuruFocus.com · 2026-05-15</small></div><div class="news-item"><div>Jim Cramer Says General Mills Yield “Seems Pretty High for a Quality Company”</div><small class="muted">Insider Monkey · 2026-05-14</small></div><div class="news-item"><div>McCormick’s Unilever Deal And Mexico Stake Shift Growth And Valuation Story</div><small class="muted">Simply Wall St. · 2026-05-10</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">107</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,959</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.9%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:7.9</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$44.03</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$58.31</code></td><td class="green">+25.8%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$64.66</code></td><td class="green">+39.5%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$68.48</code></td><td class="green">+47.7%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">RMD</span>
+                <span class="muted"> ResMed Inc.</span>
+                <span class="sector-tag">Healthcare</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">66</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$201.88</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-26.5%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+1.9%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">25.2%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">16.6</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (10.8%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ RSI 29 (oversold)</div><div class="signal-neg" style="font-size:13px">- Heavy insider selling (11 sells)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Quality 91/100 (top tier)</div><div class="signal-pos">+ Analyst: buy (15)</div><div class="signal-pos">+ Upside to target: +34%</div><div class="signal-pos">+ RSI 29 (oversold)</div><div class="signal-neg">! Insider selling (11 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 0 / 매도 11)<div class="muted" style="font-size:12px">SELL: FARRELL MICHAEL J (4,991)</div><div class="muted" style="font-size:12px">SELL: FARRELL MICHAEL J (4,991)</div><div class="muted" style="font-size:12px">SELL: SANDERCOCK BRETT (1,000)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (15명)<br>
+                목표가: $180.00 ~ $270.60 ~ $340.00<br>상승여력: <b class="green">+34%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#0F6E56">29</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -31%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>Jim Cramer Discusses the Performance of Danaher and Its Peers</div><small class="muted">Insider Monkey · 2026-05-14</small></div><div class="news-item"><div>ResMed (NYSE:RMD) Could Be A Buy For Its Upcoming Dividend</div><small class="muted">Simply Wall St. · 2026-05-09</small></div><div class="news-item"><div>Why ResMed (RMD) Narrative Is Shifting As Analysts Reassess Growth And Valuation…</div><small class="muted">Simply Wall St. · 2026-05-03</small></div><div class="news-item"><div>2 Cash-Heavy Stocks with Exciting Potential and 1 We Turn Down</div><small class="muted">StockStory · 2026-05-02</small></div><div class="news-item"><div>ResMed Q3 Earnings Call Highlights</div><small class="muted">MarketBeat · 2026-05-02</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">24</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,845</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.7%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:5.3</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$191.79</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$236.34</code></td><td class="green">+17.1%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$255.42</code></td><td class="green">+26.5%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$266.87</code></td><td class="green">+32.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">VEEV</span>
+                <span class="muted"> Veeva Systems Inc.</span>
+                <span class="sector-tag">Healthcare</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">63</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$158.86</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-29.5%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+4.9%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">13.9%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">16.1</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (16.0%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ Large upside to target (+66%)</div><div class="signal-neg" style="font-size:13px">- Heavy insider selling (3 sells)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Analyst: buy (28)</div><div class="signal-pos">+ Upside to target: +66%</div><div class="signal-neg">! Insider selling (3 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 0 / 매도 3)<div class="muted" style="font-size:12px">SELL: HUNG PRISCILLA C (750)</div><div class="muted" style="font-size:12px">SELL: HUNG PRISCILLA C (750)</div><div class="muted" style="font-size:12px">SELL: SCHWENGER THOMAS D (1,000)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (28명)<br>
+                목표가: $176.00 ~ $264.46 ~ $350.00<br>상승여력: <b class="green">+66%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">48</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -48%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>CLEAR Secure, Qualys, and Veeva Systems Shares Plummet, What You Need To Know</div><small class="muted">StockStory · 2026-05-17</small></div><div class="news-item"><div>Alfreton Capital Sees Opportunity in CCC, Buys 1.98M Shares</div><small class="muted">Motley Fool · 2026-05-16</small></div><div class="news-item"><div>2 Cash-Heavy Stocks Worth Investigating and 1 We Brush Off</div><small class="muted">StockStory · 2026-05-15</small></div><div class="news-item"><div>Veeva Systems Expands AI and Vault CRM Momentum: Time to Buy or Hold?</div><small class="muted">Zacks · 2026-05-14</small></div><div class="news-item"><div>Veeva Systems (VEEV) Stock Falls Amid Market Uptick: What Investors Need to Know</div><small class="muted">Zacks · 2026-05-13</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">31</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,925</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.8%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:6.0</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$150.92</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$188.35</code></td><td class="green">+18.6%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$206.82</code></td><td class="green">+30.2%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$251.24</code></td><td class="green">+58.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#0F6E56">
+        <div class="card-header">
+            <div>
+                <span class="ticker">BX</span>
+                <span class="muted"> Blackstone Inc.</span>
+                <span class="sector-tag">Financial Services</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">TEMPORARY</span>
+                <span class="badge" style="background:#E1F5EE;color:#0F6E56">STRONG BUY</span>
+                <span class="score-num">82</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$117.89</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-22.8%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+16.5%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">29.5%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">15.7</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (5.7%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Insider BUYING (2 buys)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ Above 50-day MA</div><div class="signal-pos" style="font-size:13px">+ Strong bounce +16.5%</div><div class="signal-pos" style="font-size:13px">+ Moderate drop (<25%) — likely rotation</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Quality 85/100 (top tier)</div><div class="signal-pos">+ Strong bounce +16.5%</div><div class="signal-pos">+ Insider BUYING (2 buys)</div><div class="signal-pos">+ Analyst: buy (20)</div><div class="signal-pos">+ Above 50-day MA</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#0F6E56;font-weight:500">BUYING</span> (매수 2 / 매도 1)<div class="muted" style="font-size:12px">BUY: PORAT RUTH M (438)</div><div class="muted" style="font-size:12px">SELL: SAWHNEY VIKRANT (30,014)</div><div class="muted" style="font-size:12px">BUY: PORAT RUTH M (524)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (20명)<br>
+                목표가: $116.00 ~ $143.90 ~ $190.00<br>상승여력: <b class="green">+22%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">48</b></span><span>50일선: <b>위</b></span><span>52주고점比: -36%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>Does Blackstone’s New BXDC Data Center REIT Meaningfully Change The Bull Case Fo…</div><small class="muted">Simply Wall St. · 2026-05-16</small></div><div class="news-item"><div>Harvard endowment chief N.P. Narvekar plans retirement after decade-long tenure</div><small class="muted">Investing.com · 2026-05-16</small></div><div class="news-item"><div>This Ice Cream Maker Just Went Public. Now Blackstone Might Want to Take It Priv…</div><small class="muted">Barrons.com · 2026-05-15</small></div><div class="news-item"><div>Top Midday Stories: Semiconductor Stocks Down After Trump-Xi Summit; Microsoft G…</div><small class="muted">MT Newswires · 2026-05-15</small></div><div class="news-item"><div>Blackstone, CD&R ‘eyeing The Magnum Ice Cream Company’</div><small class="muted">Just Food · 2026-05-15</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">42</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,951</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.9%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:3.7</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$112.00</code></td>
+                <td class="red">-5.0%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$126.97</code></td><td class="green">+7.7%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$139.87</code></td><td class="green">+18.6%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$147.60</code></td><td class="green">+25.2%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 8% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+    <div class="card" style="border-left-color:#185FA5">
+        <div class="card-header">
+            <div>
+                <span class="ticker">PLTR</span>
+                <span class="muted"> Palantir Technologies Inc.</span>
+                <span class="sector-tag">Technology</span>
+            </div>
+            <div class="card-badges">
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">MOSTLY_TEMPORARY</span>
+                <span class="badge" style="background:#E6F1FB;color:#185FA5">BUY</span>
+                <span class="score-num">58</span>
+            </div>
+        </div>
+        <div class="kpi-grid">
+            <div class="kpi"><div class="kl">현재가</div><div class="kv">$133.99</div></div>
+            <div class="kpi"><div class="kl">낙폭</div><div class="kv red">-21.0%</div></div>
+            <div class="kpi"><div class="kl">반등</div><div class="kv green">+4.6%</div></div>
+            <div class="kpi"><div class="kl">ROE</div><div class="kv">32.6%</div></div>
+            <div class="kpi"><div class="kl">Fwd PE</div><div class="kv">64.9</div></div>
+        </div>
+        <details><summary>하락 원인 분석</summary><div class="detail-body"><div class="signal-pos" style="font-size:13px">+ Revenue stalling (84.7%)</div><div class="signal-pos" style="font-size:13px">+ Fwd PE < Trailing PE (improving earnings)</div><div class="signal-pos" style="font-size:13px">+ Analysts bullish (buy)</div><div class="signal-pos" style="font-size:13px">+ Moderate drop (<25%) — likely rotation</div><div class="signal-neg" style="font-size:13px">- Still expensive (Fwd PE 65x)</div><div class="signal-neg" style="font-size:13px">- Heavy insider selling (10 sells)</div></div></details>
+        <details><summary>매수/매도 시그널</summary><div class="detail-body"><div class="signal-pos">+ Quality 100/100 (top tier)</div><div class="signal-pos">+ Analyst: buy (27)</div><div class="signal-pos">+ Upside to target: +37%</div><div class="signal-neg">! Fwd PE 64.9 (expensive)</div><div class="signal-neg">! Insider selling (10 sells)</div></div></details>
+        <details><summary>내부자 거래</summary><div class="detail-body"><span style="color:#A32D2D;font-weight:500">SELLING</span> (매수 0 / 매도 10)<div class="muted" style="font-size:12px">SELL: MOORE ALEXANDER D (16,000)</div><div class="muted" style="font-size:12px">SELL: MOORE ALEXANDER D (16,000)</div><div class="muted" style="font-size:12px">SELL: THIEL PETER A. J.D. (2,000,000)</div></div></details>
+        <details><summary>애널리스트 컨센서스</summary>
+            <div class="detail-body">
+                추천: <b>buy</b> (27명)<br>
+                목표가: $70.00 ~ $183.73 ~ $255.00<br>상승여력: <b class="green">+37%</b>
+            </div>
+        </details>
+        <details><summary>기술적 분석</summary><div class="detail-body"><div class="tech-grid"><span>RSI: <b style="color:#555">39</b></span><span>50일선: <b>아래</b></span><span>52주고점比: -35%</span></div></div></details>
+        <details><summary>최근 뉴스</summary><div class="detail-body news-list"><div class="news-item"><div>Why Palantir Technologies (PLTR) Stock Is Trading Lower Today</div><small class="muted">StockStory · 2026-05-17</small></div><div class="news-item"><div>Palantir (PLTR) Must Arbitrate Claims made by Former Staffers who Started a Riva…</div><small class="muted">Insider Monkey · 2026-05-16</small></div><div class="news-item"><div>What Palantir Technologies (PLTR)'s Upgraded 2026 Outlook and Rising ESG Scrutin…</div><small class="muted">Simply Wall St. · 2026-05-16</small></div><div class="news-item"><div>Trump Bought Palantir Shares Before Praising Stock on Truth Social</div><small class="muted">MT Newswires · 2026-05-15</small></div><div class="news-item"><div>Where Will Palantir Stock Be in 5 Years?</div><small class="muted">Motley Fool · 2026-05-15</small></div></div></details>
+        <div class="trade-section">
+            <div class="trade-title">트레이드 플랜</div>
+            
+        <div class="mini-grid four">
+            <div class="mini-stat"><div class="sl">수량</div><div class="sv">37</div></div>
+            <div class="mini-stat"><div class="sl">금액</div><div class="sv">$4,958</div></div>
+            <div class="mini-stat"><div class="sl">비중</div><div class="sv">9.9%</div></div>
+            <div class="mini-stat"><div class="sl">R/R</div><div class="sv">1:3.2</div></div>
+        </div>
+        <table class="trade-table">
+            <tr class="stop-row"><td>손절선</td><td><code>$126.18</code></td>
+                <td class="red">-5.8%</td><td class="muted">전량 매도</td></tr>
+            <tr><td>50% 회복</td><td><code>$148.83</code></td><td class="green">+11.1%</td><td class="muted">Sell 30%</td></tr><tr><td>75% 회복</td><td><code>$159.22</code></td><td class="green">+18.8%</td><td class="muted">Sell 30%</td></tr><tr><td>90% 회복</td><td><code>$174.54</code></td><td class="green">+30.3%</td><td class="muted">Sell remaining 40%</td></tr>
+        </table>
+        <p class="muted" style="font-size:12px">목표1 달성 후 잔여 포지션에 10% 트레일링 스톱 발동</p>
+        </div>
+    </div>
+
+<div class="disclaimer">
+본 리포트는 교육·분석 목적으로만 제공되며 투자 권유가 아닙니다.
+모든 투자 결정은 본인의 판단과 책임 하에 이루어져야 합니다.
+과거 성과는 미래 수익을 보장하지 않습니다.
+</div>
+
 </body>
 </html>
