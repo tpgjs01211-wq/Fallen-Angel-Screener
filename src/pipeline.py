@@ -154,7 +154,7 @@ def screen_drops(quality_df):
 # ════════════════════════════════════════════════════════
 
 def fetch_macro():
-    """주요 거시경제 지표 수집"""
+    """주요 거시경제 지표 수집 + S&P500 200일선 체크"""
     symbols = {
         "S&P 500":    "^GSPC",
         "NASDAQ":     "^IXIC",
@@ -183,7 +183,86 @@ def fetch_macro():
                 continue
     except Exception:
         pass
+
+    # S&P500 200일선 별도 체크 (1년 데이터 필요)
+    try:
+        sp_hist = yf.Ticker("^GSPC").history(period="1y")
+        if len(sp_hist) >= 200 and "S&P 500" in result:
+            ma200 = float(sp_hist["Close"].rolling(200).mean().iloc[-1])
+            result["S&P 500"]["ma200"]       = ma200
+            result["S&P 500"]["above_ma200"] = result["S&P 500"]["price"] > ma200
+    except Exception:
+        pass
+
     return result
+
+
+def assess_macro_regime(macro):
+    """거시경제 지표 → 리스크 조정값 산출"""
+    regime = {
+        "position_multiplier": 1.0,
+        "score_penalty":       0,
+        "growth_penalty":      0,
+        "bearish_market":      False,
+        "warnings":            [],
+        "notes":               [],
+    }
+    if not macro:
+        return regime
+
+    # VIX 공포지수
+    vix_d = macro.get("VIX")
+    if vix_d:
+        v = vix_d["price"]
+        if v >= 35:
+            regime["position_multiplier"] *= 0.50
+            regime["score_penalty"]       += 10
+            regime["warnings"].append(f"VIX {v:.0f} 극도의 공포 — 포지션 50% 축소 / 전종목 -10점")
+        elif v >= 25:
+            regime["position_multiplier"] *= 0.75
+            regime["score_penalty"]       += 5
+            regime["warnings"].append(f"VIX {v:.0f} 공포 구간 — 포지션 25% 축소 / 전종목 -5점")
+        elif v < 15:
+            regime["notes"].append(f"VIX {v:.0f} 탐욕 구간 — 시장 안정, 정상 포지션 유지")
+
+    # 10Y 국채금리
+    tnx_d = macro.get("10Y 국채금리")
+    if tnx_d:
+        rate, chg = tnx_d["price"], tnx_d["change"]
+        if rate > 4.5 and chg > 0.005:
+            regime["growth_penalty"] += 15
+            regime["warnings"].append(f"10Y 금리 {rate:.2f}% 급등 중 — 고PER 성장주 -15점")
+        elif rate > 4.5:
+            regime["growth_penalty"] += 8
+            regime["warnings"].append(f"10Y 금리 {rate:.2f}% 고금리 — 고PER 성장주 -8점")
+        elif rate < 3.5:
+            regime["notes"].append(f"10Y 금리 {rate:.2f}% 저금리 — 성장주 우호 환경")
+
+    # S&P500 200일선
+    sp_d = macro.get("S&P 500")
+    if sp_d:
+        if sp_d.get("above_ma200") is False:
+            regime["bearish_market"]      = True
+            regime["position_multiplier"] *= 0.60
+            regime["score_penalty"]       += 15
+            regime["warnings"].append(
+                f"S&P500({sp_d['price']:,.0f}) 200일선({sp_d.get('ma200',0):,.0f}) 하회"
+                " — 약세장, 포지션 40% 추가 축소 / 전종목 -15점"
+            )
+        elif sp_d.get("above_ma200") is True:
+            regime["notes"].append(
+                f"S&P500({sp_d['price']:,.0f}) 200일선({sp_d.get('ma200',0):,.0f}) 상회 — 강세장 기조"
+            )
+        if sp_d["change"] < -0.02:
+            regime["score_penalty"] += 5
+            regime["warnings"].append(f"S&P500 당일 {sp_d['change']:.1%} 급락 — 전종목 추가 -5점")
+
+    # 달러인덱스
+    dxy_d = macro.get("달러인덱스")
+    if dxy_d and dxy_d["change"] > 0.005:
+        regime["notes"].append(f"달러인덱스 강세({dxy_d['change']:+.1%}) — 수출주·원자재주 주의")
+
+    return regime
 
 
 def _news_url(content):
@@ -327,7 +406,7 @@ def assess_drop_nature(row, insider, analyst, technicals):
     return {"nature": nature, "temporary_factors": T, "structural_factors": S}
 
 
-def score_candidate(row, insider, analyst, technicals, assessment):
+def score_candidate(row, insider, analyst, technicals, assessment, macro_regime=None):
     score, reasons, warnings = 0, [], []
     q = row.get("quality_score", 0)
     score += min(q / 100 * 25, 25)
@@ -377,6 +456,18 @@ def score_candidate(row, insider, analyst, technicals, assessment):
     elif nat == "MIXED":
         score = int(score*0.75); warnings.append("Mixed signals — score ×0.75")
 
+    # 매크로 페널티 적용
+    if macro_regime:
+        penalty = macro_regime["score_penalty"]
+        fpe_val = row.get("forwardPE")
+        if fpe_val and fpe_val > 30:
+            penalty += macro_regime["growth_penalty"]
+            if macro_regime["growth_penalty"] > 0:
+                warnings.append(f"고PER({fpe_val:.0f}x) × 금리 페널티 -{macro_regime['growth_penalty']}점")
+        if penalty > 0:
+            score = max(0, score - penalty)
+            warnings.append(f"매크로 환경 페널티 -{penalty}점 적용")
+
     grade = "STRONG BUY" if score>=60 else "BUY" if score>=45 else "WATCH" if score>=30 else "PASS"
     return {"score": min(score,100), "grade": grade, "reasons": reasons, "warnings": warnings}
 
@@ -385,7 +476,7 @@ def score_candidate(row, insider, analyst, technicals, assessment):
 #  PHASE 4 : TRADE PLAN
 # ════════════════════════════════════════════════════════
 
-def calculate_trade_plan(grade, cur, peak, trough, tech, analyst):
+def calculate_trade_plan(grade, cur, peak, trough, tech, analyst, macro_regime=None):
     if grade == "PASS" or cur <= 0:
         return {"action":"DO NOT BUY","shares":0,"amount":0,"pct_portfolio":0,
                 "stop_loss":0,"stop_pct":0,"targets":[],"trailing_stop":0,
@@ -410,8 +501,9 @@ def calculate_trade_plan(grade, cur, peak, trough, tech, analyst):
         {"price":round(t3,2),"pct":(t3-cur)/cur,"action":"Sell remaining 40%","label":"90% 회복"},
     ]
     rps   = max(cur - stop, cur*0.05)
-    shares = min(int(TOTAL_CAPITAL*RISK_PER_TRADE*rm / rps),
-                 int(TOTAL_CAPITAL*MAX_POSITION_PCT / cur))
+    pm    = macro_regime["position_multiplier"] if macro_regime else 1.0
+    shares = min(int(TOTAL_CAPITAL*RISK_PER_TRADE*rm*pm / rps),
+                 int(TOTAL_CAPITAL*MAX_POSITION_PCT*pm / cur))
     amount = shares * cur
     return {
         "action":entry, "shares":shares, "amount":round(amount,2),
@@ -714,7 +806,33 @@ def macro_section(macro, market_news):
 </div>"""
 
 
-def generate_html(results, comparison, date_str, macro=None, market_news=None):
+def regime_banner(macro_regime):
+    if not macro_regime:
+        return ""
+    pm   = macro_regime["position_multiplier"]
+    warn = macro_regime["warnings"]
+    note = macro_regime["notes"]
+    if not warn and not note:
+        return ""
+
+    pm_pct = int(pm * 100)
+    pm_col = "#0F6E56" if pm >= 1.0 else "#c47900" if pm >= 0.75 else "#A32D2D"
+
+    warn_h = "".join(f'<div class="regime-warn">⚠ {w}</div>' for w in warn)
+    note_h = "".join(f'<div class="regime-note">✓ {n}</div>' for n in note)
+
+    return f"""
+<div class="regime-box" style="border-color:{pm_col}">
+  <div class="regime-header" style="color:{pm_col}">
+    매크로 리스크 분석 &nbsp;·&nbsp; 포지션 배수:
+    <strong>{pm_pct}%</strong>
+    {"(정상)" if pm>=1.0 else "(축소 적용 중)"}
+  </div>
+  {warn_h}{note_h}
+</div>"""
+
+
+def generate_html(results, comparison, date_str, macro=None, market_news=None, macro_regime=None):
     actionable  = [r for r in results if r["verdict"]["grade"] in ("STRONG BUY","BUY")]
     total_alloc = sum(r["trade_plan"]["amount"] for r in actionable)
     total_risk  = sum(r["trade_plan"].get("risk_amount",0) for r in actionable)
@@ -794,6 +912,11 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
 /* Header bar */
 .header-bar{{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 20px;flex-wrap:wrap;gap:8px}}
 .disclaimer{{font-size:12px;color:#888;margin:28px 0 0;padding:14px;background:var(--bg);border-radius:var(--radius)}}
+/* Regime banner */
+.regime-box{{border-left:4px solid #c47900;background:#fffdf5;border-radius:var(--radius);padding:14px 16px;margin:0 0 20px}}
+.regime-header{{font-size:13px;font-weight:700;margin:0 0 8px;text-transform:uppercase;letter-spacing:.4px}}
+.regime-warn{{font-size:13px;color:#7a3800;padding:2px 0;line-height:1.5}}
+.regime-note{{font-size:13px;color:#1a5c38;padding:2px 0;line-height:1.5}}
 /* Macro section */
 .macro-section{{background:#f8f9fa;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 0 24px}}
 .macro-header{{font-size:13px;font-weight:600;color:#555;margin:0 0 12px;text-transform:uppercase;letter-spacing:.5px}}
@@ -836,6 +959,8 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
 
 {macro_section(macro, market_news)}
 
+{regime_banner(macro_regime)}
+
 <h2>전일 대비 비교</h2>
 {comparison_section(comparison)}
 
@@ -873,7 +998,19 @@ def main():
     if len(fallen_df) == 0:
         print("  No fallen angels found."); return
 
-    # Phase 2-4
+    # Phase 2: 매크로 지표 수집 (분석 전에 먼저)
+    print("  [2.5/5] Fetching macro indicators …")
+    macro        = fetch_macro()
+    market_news  = fetch_market_news()
+    macro_regime = assess_macro_regime(macro)
+    if macro_regime["warnings"]:
+        for w in macro_regime["warnings"]:
+            print(f"    ⚠ {w}")
+    if macro_regime["notes"]:
+        for n in macro_regime["notes"]:
+            print(f"    ✓ {n}")
+
+    # Phase 3-4
     analyze_n = min(ANALYZE_TOP_N, len(fallen_df))
     print(f"  [3/5] Analyzing top {analyze_n} …")
     results = []
@@ -885,11 +1022,11 @@ def main():
         analyst    = fetch_analyst(ticker)
         tech       = fetch_technicals(ticker)
         assessment = assess_drop_nature(row, insider, analyst, tech)
-        verdict    = score_candidate(row, insider, analyst, tech, assessment)
+        verdict    = score_candidate(row, insider, analyst, tech, assessment, macro_regime)
         cur_price  = tech.get("current", row.get("current_price", 0))
         trade_plan = calculate_trade_plan(verdict["grade"], cur_price,
                                           row.get("peak_price",0), row.get("trough_price",0),
-                                          tech, analyst)
+                                          tech, analyst, macro_regime)
         fpe = row.get("forwardPE")
         results.append({
             "ticker":ticker,"name":row.get("name",""),"sector":row.get("sector",""),
@@ -910,10 +1047,7 @@ def main():
 
     # Phase 6: save
     print("  [5/5] Generating report …")
-    print("    Fetching macro indicators …")
-    macro       = fetch_macro()
-    market_news = fetch_market_news()
-    html = generate_html(results, comparison, date_str, macro, market_news)
+    html = generate_html(results, comparison, date_str, macro, market_news, macro_regime)
     html_path = os.path.join(DOCS_DIR, "index.html")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
