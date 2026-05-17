@@ -581,6 +581,224 @@ def build_comparison(today_results, prev_df, prev_date):
 
 
 # ════════════════════════════════════════════════════════
+#  PHASE 5b : HISTORY
+# ════════════════════════════════════════════════════════
+
+def load_all_history():
+    """data/ 폴더의 모든 CSV → 날짜순 리스트"""
+    files = sorted(glob.glob(os.path.join(DATA_DIR, "analysis_*.csv")))
+    history = []
+    for f in files:
+        try:
+            date_str = f.split("analysis_")[-1].replace(".csv", "")
+            df = pd.read_csv(f)
+            history.append({"date": date_str, "rows": df.to_dict("records")})
+        except Exception:
+            continue
+    return history
+
+
+def generate_history_html(history_data):
+    if not history_data:
+        return None
+
+    dates  = [d["date"] for d in history_data]
+    dlabels = [f"{d[:4]}-{d[4:6]}-{d[6:]}" for d in dates]
+
+    # 등장한 모든 티커 (순서 유지)
+    seen, all_tickers = set(), []
+    for d in history_data:
+        for r in d["rows"]:
+            t = str(r.get("ticker",""))
+            if t and t not in seen:
+                all_tickers.append(t); seen.add(t)
+
+    # 날짜×티커 매트릭스
+    matrix = {tk: {d["date"]: next((r for r in d["rows"] if str(r.get("ticker",""))==tk), None)
+                   for d in history_data}
+              for tk in all_tickers}
+
+    # Chart.js 점수 트렌드 데이터셋
+    PALETTE = ["#4e9af1","#56c596","#f5a623","#e05c5c","#9b59b6",
+               "#1abc9c","#e67e22","#2ecc71","#e74c3c","#3498db"]
+    datasets = []
+    for i, tk in enumerate(all_tickers):
+        pts = [matrix[tk][d].get("score") if matrix[tk][d] else None for d in dates]
+        if all(p is None for p in pts): continue
+        datasets.append({
+            "label": tk,
+            "data": pts,
+            "borderColor": PALETTE[i % len(PALETTE)],
+            "backgroundColor": PALETTE[i % len(PALETTE)] + "22",
+            "tension": 0.35,
+            "spanGaps": True,
+            "pointRadius": 5,
+            "pointHoverRadius": 7,
+            "borderWidth": 2,
+        })
+
+    # 가격 퍼포먼스 (첫 등장일 대비 %)
+    perf_rows = ""
+    for tk in all_tickers:
+        entries = [(d, matrix[tk][d]) for d in dates if matrix[tk][d]]
+        if len(entries) < 2: continue
+        first_d, first_r = entries[0]
+        last_d,  last_r  = entries[-1]
+        fp = float(first_r.get("price", 0) or 0)
+        lp = float(last_r.get("price", 0) or 0)
+        if fp <= 0: continue
+        chg = (lp - fp) / fp
+        col = "#0F6E56" if chg >= 0 else "#A32D2D"
+        sign = "+" if chg >= 0 else ""
+        days = len(entries)
+        grade_now = last_r.get("grade","")
+        gb_bg = {"STRONG BUY":"#E1F5EE","BUY":"#E6F1FB","WATCH":"#FAEEDA"}.get(grade_now,"#f5f5f5")
+        gb_fg = {"STRONG BUY":"#0F6E56","BUY":"#185FA5","WATCH":"#854F0B"}.get(grade_now,"#888")
+        perf_rows += (
+            f'<tr><td><b>{tk}</b></td>'
+            f'<td style="font-size:12px;color:#888">{dlabels[dates.index(first_d)]}</td>'
+            f'<td>${fp:.2f}</td><td>${lp:.2f}</td>'
+            f'<td style="color:{col};font-weight:600">{sign}{chg:.1%}</td>'
+            f'<td>{days}일</td>'
+            f'<td><span style="background:{gb_bg};color:{gb_fg};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500">{grade_now}</span></td>'
+            f'</tr>'
+        )
+
+    # 등급 히트맵 테이블
+    GCOL = {"STRONG BUY":("#c3f0d8","#1b4332"),"BUY":("#c2e4f5","#0d2f45"),
+            "WATCH":("#fde8c8","#6b3a00"),"PASS":("#e8e9eb","#444")}
+    th_dates = "".join(f'<th style="font-size:10px;white-space:nowrap;padding:4px 6px;color:#888">{dl[5:]}</th>'
+                       for dl in dlabels)
+    hmap_rows = ""
+    for tk in all_tickers:
+        cells = ""
+        for d in dates:
+            r = matrix[tk][d]
+            if r:
+                grade = str(r.get("grade",""))
+                score = r.get("score","")
+                bg, fg = GCOL.get(grade, ("#f5f5f5","#aaa"))
+                cells += (f'<td style="background:{bg};color:{fg};text-align:center;'
+                          f'font-size:11px;font-weight:600;padding:4px 5px;border-radius:3px">{score}</td>')
+            else:
+                cells += '<td style="text-align:center;color:#ddd;font-size:11px">—</td>'
+        hmap_rows += f'<tr><td style="font-family:monospace;font-weight:700;padding:4px 10px;white-space:nowrap;font-size:13px">{tk}</td>{cells}</tr>'
+
+    ds_json  = json.dumps(datasets, ensure_ascii=False)
+    lab_json = json.dumps(dlabels)
+    run_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fallen Angel — 히스토리</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:-apple-system,"Segoe UI",sans-serif;max-width:1100px;margin:0 auto;padding:24px 16px;color:#1a1a1a;background:#fff;line-height:1.6}}
+h1{{font-size:22px;font-weight:700}}
+h2{{font-size:16px;font-weight:600;margin:32px 0 14px;padding:0 0 8px;border-bottom:2px solid #e5e7eb}}
+.back{{font-size:13px;color:#888;margin:0 0 20px;display:block;text-decoration:none}}
+.back:hover{{color:#185FA5}}
+.chart-wrap{{background:#f8f9fa;border-radius:12px;padding:20px;margin:0 0 8px}}
+table{{width:100%;border-collapse:separate;border-spacing:3px;font-size:13px}}
+th{{text-align:left;padding:6px 8px;color:#888;font-weight:500;font-size:11px;background:#f8f9fa}}
+td{{padding:5px 8px;border-bottom:1px solid #f5f5f5}}
+tr:hover td{{background:#fafafa}}
+.legend{{display:flex;gap:14px;margin:10px 0 0;font-size:12px;flex-wrap:wrap}}
+.legend span{{display:flex;align-items:center;gap:5px}}
+.legend-box{{width:14px;height:14px;border-radius:3px;display:inline-block}}
+.stat-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 28px}}
+.stat-card{{background:#f8f9fa;border-radius:10px;padding:14px 16px}}
+.stat-label{{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px}}
+.stat-value{{font-size:22px;font-weight:700;margin:3px 0}}
+@media(max-width:600px){{.stat-row{{grid-template-columns:1fr 1fr}}}}
+</style>
+</head>
+<body>
+
+<a class="back" href="index.html">← 오늘의 리포트로 돌아가기</a>
+<h1>📅 히스토리 & 트렌드</h1>
+<p style="color:#888;font-size:13px;margin:4px 0 24px">
+  {dlabels[0]} ~ {dlabels[-1]} &nbsp;·&nbsp; 업데이트: {run_time} KST
+</p>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-label">누적 추적일</div><div class="stat-value">{len(dates)}일</div></div>
+  <div class="stat-card"><div class="stat-label">추적 종목 수</div><div class="stat-value">{len(all_tickers)}개</div></div>
+  <div class="stat-card"><div class="stat-label">최근 업데이트</div><div class="stat-value" style="font-size:15px">{dlabels[-1]}</div></div>
+</div>
+
+<h2>📈 점수 트렌드</h2>
+<div class="chart-wrap">
+  <canvas id="scoreChart"></canvas>
+</div>
+<p style="font-size:12px;color:#aaa;margin:4px 0 0">차트에서 종목을 클릭하면 숨기거나 표시할 수 있습니다.</p>
+
+<h2>💹 가격 퍼포먼스 (첫 등장일 대비)</h2>
+<div style="overflow-x:auto;margin:0 0 8px">
+<table>
+  <thead><tr><th>종목</th><th>첫 등장일</th><th>첫 가격</th><th>현재가</th><th>수익률</th><th>추적일수</th><th>현재 등급</th></tr></thead>
+  <tbody>{perf_rows or "<tr><td colspan='7' style='color:#aaa;text-align:center;padding:16px'>데이터 2일 이상 필요</td></tr>"}</tbody>
+</table>
+</div>
+
+<h2>🟩 등급 히트맵 <span style="font-size:12px;font-weight:400;color:#888">숫자 = 점수 / 빈칸 = 미포함</span></h2>
+<div style="overflow-x:auto;margin:0 0 12px">
+<table>
+  <thead><tr><th style="font-size:11px">종목</th>{th_dates}</tr></thead>
+  <tbody>{hmap_rows}</tbody>
+</table>
+</div>
+<div class="legend">
+  <span><span class="legend-box" style="background:#c3f0d8;border:1px solid #6fcf97"></span>STRONG BUY</span>
+  <span><span class="legend-box" style="background:#c2e4f5;border:1px solid #56b4d3"></span>BUY</span>
+  <span><span class="legend-box" style="background:#fde8c8;border:1px solid #f5a623"></span>WATCH</span>
+  <span><span class="legend-box" style="background:#e8e9eb;border:1px solid #b0b3b8"></span>PASS</span>
+</div>
+
+<div style="font-size:12px;color:#aaa;margin:32px 0 0;padding:14px;background:#f8f9fa;border-radius:10px">
+본 리포트는 교육·분석 목적으로만 제공되며 투자 권유가 아닙니다.
+</div>
+
+<script>
+new Chart(document.getElementById('scoreChart'), {{
+  type: 'line',
+  data: {{
+    labels: {lab_json},
+    datasets: {ds_json}
+  }},
+  options: {{
+    responsive: true,
+    interaction: {{ mode: 'index', intersect: false }},
+    plugins: {{
+      legend: {{
+        position: 'right',
+        labels: {{ boxWidth: 12, font: {{ size: 12 }}, padding: 10 }}
+      }},
+      tooltip: {{
+        callbacks: {{
+          label: (ctx) => ` ${{ctx.dataset.label}}: ${{ctx.parsed.y ?? '—'}}점`
+        }}
+      }}
+    }},
+    scales: {{
+      y: {{ min: 0, max: 100,
+            grid: {{ color: '#f0f0f0' }},
+            title: {{ display: true, text: '점수 (0~100)' }} }},
+      x: {{ grid: {{ display: false }},
+            ticks: {{ font: {{ size: 11 }} }} }}
+    }}
+  }}
+}});
+</script>
+</body>
+</html>"""
+
+
+# ════════════════════════════════════════════════════════
 #  PHASE 6 : HTML REPORT
 # ════════════════════════════════════════════════════════
 
@@ -1109,7 +1327,8 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
   </div>
   <div style="font-size:12px;color:#aaa;text-align:right">
     매일 오전 7시 자동 업데이트<br>
-    <span style="color:var(--green)">●</span> 데이터: yfinance
+    <span style="color:var(--green)">●</span> 데이터: yfinance<br>
+    <a href="history.html" style="color:#185FA5;text-decoration:none;font-size:12px">📅 히스토리 & 트렌드 →</a>
   </div>
 </div>
 
@@ -1234,6 +1453,15 @@ def main():
         })
     csv_path = os.path.join(DATA_DIR, f"analysis_{date_str}.csv")
     pd.DataFrame(csv_rows).to_csv(csv_path, index=False)
+
+    # History page
+    all_history  = load_all_history()
+    history_html = generate_history_html(all_history)
+    if history_html:
+        hist_path = os.path.join(DOCS_DIR, "history.html")
+        with open(hist_path, "w", encoding="utf-8") as f:
+            f.write(history_html)
+        print(f"  ✓ History → {hist_path}")
 
     print(f"  ✓ HTML → {html_path}")
     print(f"  ✓ CSV  → {csv_path}")
