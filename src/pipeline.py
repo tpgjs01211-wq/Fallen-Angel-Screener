@@ -1329,6 +1329,8 @@ code{{font-family:monospace;background:#f3f4f6;padding:1px 5px;border-radius:4px
     매일 오전 7시 자동 업데이트<br>
     <span style="color:var(--green)">●</span> 데이터: yfinance<br>
     <a href="history.html" style="color:#185FA5;text-decoration:none;font-size:12px">📅 히스토리 & 트렌드 →</a>
+    &nbsp;·&nbsp;
+    <a href="momentum.html" style="color:#7B5EA7;text-decoration:none;font-size:12px">⚡ 모멘텀 전략 →</a>
   </div>
 </div>
 
@@ -1465,6 +1467,20 @@ def main():
 
     print(f"  ✓ HTML → {html_path}")
     print(f"  ✓ CSV  → {csv_path}")
+
+    # ── 모멘텀 전략 ─────────────────────────────────────────────
+    print("\n[Phase 7] Momentum Riding Strategy …")
+    try:
+        import sys as _sys
+        _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from momentum import run as run_momentum
+        run_momentum(TOTAL_CAPITAL, DOCS_DIR, DATA_DIR)
+        print("  ✓ Momentum → docs/momentum.html")
+    except Exception as _e:
+        import traceback
+        print(f"  [Momentum] 실행 실패: {_e}")
+        traceback.print_exc()
+
     print("  Done!")
 
 

@@ -39,7 +39,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html data/
+          git add docs/ data/
           # 변경 사항이 있을 때만 커밋
           git diff --cached --quiet || git commit -m "📊 Daily report $(date +'%Y-%m-%d') KST"
           git push
